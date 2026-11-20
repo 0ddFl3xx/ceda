@@ -24,7 +24,7 @@ async function DashboardContent() {
       { role: "submitter", title: "Submitter dashboard", href: "/dashboard" }, { role: "evaluator", title: "Evaluator workspace", href: "/evaluator" },
       { role: "adjudicator", title: "Adjudicator workspace", href: "/adjudicator" }, { role: "admin", title: "Administration", href: "/admin" },
       { role: "consultant", title: "Consultant workspace", href: "/consultant" }, { role: "committee_member", title: "Committee monitoring", href: "/committee" },
-    ].filter((workspace) => userRoles.includes(workspace.role as (typeof userRoles)[number]));
+    ].filter((workspace) => workspace.role !== "submitter" && userRoles.includes(workspace.role as (typeof userRoles)[number]));
     return <main id="main-content" className="flex-1 bg-white px-4 py-14 sm:px-6"><div className="mx-auto max-w-[1000px]"><p className="text-xs font-bold uppercase tracking-[0.18em] text-ceda-burgundy">Your account</p><h1 className="mt-2 text-3xl font-bold text-ceda-ink">Choose a workspace</h1><div className="mt-7 grid gap-4 sm:grid-cols-2">{workspaces.map((workspace) => <Link key={workspace.role} href={workspace.href} className="rounded-2xl border border-ceda-line bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ceda-burgundy"><span className="font-semibold text-ceda-ink">{workspace.title}</span><span className="mt-2 block text-sm text-ceda-muted">Open this role’s portal workspace →</span></Link>)}</div></div></main>;
   }
   const ideas = userRoles.includes("submitter") ? await getSubmitterIdeas(user.id) : [];

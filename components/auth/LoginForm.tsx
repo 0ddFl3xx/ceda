@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 export function LoginForm() {
   const router = useRouter();
@@ -98,7 +99,7 @@ export function LoginForm() {
       <form className="mt-6 space-y-4" onSubmit={submit} aria-labelledby="login-heading">
         <h2 id="login-heading" className="sr-only">Sign-in details</h2>
         <div className="auth-field"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="username" required /></div>
-        <div className="auth-field"><label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required /></div>
+        <div className="auth-field"><label htmlFor="password">Password</label><PasswordInput id="password" name="password" autoComplete="current-password" required /></div>
         <div className="text-right"><Link className="text-sm font-semibold text-ceda-burgundy underline underline-offset-4" href="/forgot-password">Forgot password?</Link></div>
         <button className="auth-primary" type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</button>
       </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -41,7 +42,7 @@ export function ForgotPasswordForm() {
       {sent && <form className="mt-6 space-y-4 border-t border-ceda-line pt-6" onSubmit={resetPassword} aria-labelledby="reset-heading">
         <h2 id="reset-heading" className="font-semibold text-ceda-ink">Choose a new password</h2>
         <div className="auth-field"><label htmlFor="otp">Six-digit reset code</label><input id="otp" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" minLength={6} maxLength={6} required /></div>
-        <div className="auth-field"><label htmlFor="password">New password</label><input id="password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required /></div>
+        <div className="auth-field"><label htmlFor="password">New password</label><PasswordInput id="password" name="password" autoComplete="new-password" minLength={12} maxLength={128} required /></div>
         <button className="auth-primary" type="submit" disabled={pending}>{pending ? "Updating…" : "Change password"}</button>
       </form>}
     </section>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 type Feedback = { kind: "error" | "success"; text: string } | null;
 
@@ -142,7 +143,7 @@ export function SignupForm() {
           </div>
           <div className="auth-field">
             <label htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} aria-describedby="password-help" required />
+            <PasswordInput id="password" name="password" autoComplete="new-password" minLength={12} maxLength={128} aria-describedby="password-help" required />
             <span id="password-help">Use at least 12 characters.</span>
           </div>
           <label className="auth-consent">
