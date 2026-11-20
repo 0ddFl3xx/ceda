@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFFFFF;
+  --foreground: #37231A;
+
+  /* CEDA Brand Design System Sampled from Reference */
+  --ceda-burgundy: #7A1F14;
+  --ceda-burgundy-dark: #5C150D;
+  --ceda-burgundy-light: #94291D;
+  --ceda-orange: #E8710A;
+  --ceda-orange-glow: #F38C30;
+  --ceda-peach: #F4B58A;
+  --ceda-peach-light: #FCEBDD;
+  --ceda-cream-start: #FFF9F4;
+  --ceda-cream-mid: #FFF1E4;
+  --ceda-cream-end: #F6DCCB;
+  --ceda-text-main: #331F17;
+  --ceda-text-body: #573E32;
+  --ceda-text-muted: #7F5E4E;
+  --ceda-border: rgba(122, 31, 20, 0.14);
+  --surface-muted: #F8F9FA;
 }
 
 @theme inline {
@@ -10,17 +27,209 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-ceda-burgundy: var(--ceda-burgundy);
+  --color-ceda-orange: var(--ceda-orange);
+  --color-ceda-peach: var(--ceda-peach);
+  --color-ceda-ink: var(--ceda-text-main);
+  --color-ceda-body: var(--ceda-text-body);
+  --color-ceda-muted: var(--ceda-text-muted);
+  --color-surface-muted: var(--surface-muted);
+  --color-ceda-line: var(--ceda-border);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background);
+  color: var(--ceda-text-body);
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--ceda-burgundy);
+  color: #fff;
+}
+
+@keyframes scrollBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.animate-scroll-bounce {
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+.auth-card {
+  margin-inline: auto;
+  border: 1px solid var(--ceda-border);
+  border-radius: 16px;
+  background: #fff;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  box-shadow: 0 16px 42px rgba(77, 31, 18, 0.08);
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.auth-field label {
+  color: var(--ceda-text-main);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.auth-field input {
+  min-height: 48px;
+  width: 100%;
+  border: 1px solid #9a8175;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.65rem 0.8rem;
+  color: var(--ceda-text-main);
+  font: inherit;
+  font-size: max(1rem, 1em);
+}
+
+.auth-field input:focus-visible,
+.auth-consent input:focus-visible {
+  outline: 3px solid var(--ceda-orange);
+  outline-offset: 2px;
+}
+
+.auth-field span {
+  color: var(--ceda-text-muted);
+  font-size: 0.8rem;
+}
+
+.auth-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  color: var(--ceda-text-body);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.auth-consent input {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.2rem;
+  flex: none;
+  accent-color: var(--ceda-burgundy);
+}
+
+.auth-consent a {
+  color: var(--ceda-burgundy);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-primary,
+.auth-secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.7rem 1.25rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.auth-primary {
+  width: 100%;
+  background: var(--ceda-burgundy);
+  color: #fff;
+}
+
+.auth-primary:hover:not(:disabled) { background: var(--ceda-burgundy-dark); }
+.auth-primary:disabled { cursor: wait; opacity: 0.65; }
+
+.auth-secondary {
+  border: 1px solid var(--ceda-border);
+  background: #fff;
+  color: var(--ceda-burgundy);
+}
+
+.auth-secondary:hover:not(:disabled) { background: #fff8f3; }
+
+.social-auth-button {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  position: relative;
+  border: 1px solid var(--ceda-border);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0.65rem 2.5rem;
+  color: var(--ceda-text-main);
+  font-size: 0.925rem;
+  font-weight: 650;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.social-auth-button:hover:not(:disabled) { border-color: var(--ceda-burgundy); background: #fff8f3; }
+.social-auth-button:disabled { cursor: default; }
+.social-auth-button:focus-visible { outline: 3px solid var(--ceda-orange); outline-offset: 2px; }
+.social-auth-logo { width: 1.25rem; height: 1.25rem; flex: none; }
+
+.auth-feedback {
+  margin-top: 1.25rem;
+  border: 1px solid var(--ceda-border);
+  border-radius: 10px;
+  background: #fff9f4;
+  padding: 0.75rem 0.9rem;
+  color: var(--ceda-text-body);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.auth-feedback.error { border-color: #b42318; background: #fff5f4; color: #8b1d14; }
+.auth-feedback.success { border-color: #16803c; background: #f3fbf5; color: #14532d; }
+
+.auth-card button:focus-visible,
+.auth-card a:focus-visible {
+  outline: 3px solid var(--ceda-orange);
+  outline-offset: 3px;
+}
+
+/* Decorative reveal: unsupported browsers and reduced-motion users see static content. */
+@keyframes contentComesTogether {
+  from {
+    opacity: 0.35;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) and (animation-range: entry 0% entry 65%) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-reveal {
+      animation: contentComesTogether linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 65%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-bounce {
+    animation: none !important;
+  }
 }
