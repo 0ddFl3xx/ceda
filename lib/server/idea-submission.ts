@@ -1,10 +1,14 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, isNull, lte, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull, lte, or } from "drizzle-orm";
 import { db } from "@/db";
 import {
   categories,
   awards,
+  criteria,
+  evaluationScores,
+  evaluations,
+  evaluatorAssignments,
   feedback,
   formFields,
   ideaVersions,
@@ -134,6 +138,61 @@ export async function getPublicIdeaFeedback(ideaId: string, submitterId: string)
     .innerJoin(user, eq(feedback.authorId, user.id))
     .where(and(eq(ideas.id, ideaId), eq(ideas.submitterId, submitterId), eq(feedback.isInternal, false)))
     .orderBy(asc(feedback.createdAt));
+}
+
+export async function getSubmitterEvaluationFeedback(ideaId: string, submitterId: string) {
+  const rows = await db.select({
+    evaluationId: evaluations.id,
+    versionNo: ideaVersions.versionNo,
+    stageName: workflowStages.name,
+    overallComment: evaluations.overallComment,
+    submittedAt: evaluations.submittedAt,
+    criterionName: criteria.name,
+    criterionComment: evaluationScores.comment,
+  })
+    .from(evaluations)
+    .innerJoin(evaluatorAssignments, eq(evaluations.assignmentId, evaluatorAssignments.id))
+    .innerJoin(ideas, eq(evaluatorAssignments.ideaId, ideas.id))
+    .innerJoin(ideaVersions, and(eq(evaluations.ideaVersionId, ideaVersions.id), eq(ideaVersions.ideaId, ideas.id)))
+    .innerJoin(workflowStages, eq(evaluatorAssignments.stageId, workflowStages.id))
+    .leftJoin(evaluationScores, eq(evaluationScores.evaluationId, evaluations.id))
+    .leftJoin(criteria, eq(evaluationScores.criterionId, criteria.id))
+    .where(and(
+      eq(ideas.id, ideaId),
+      eq(ideas.submitterId, submitterId),
+      isNotNull(evaluations.submittedAt),
+    ))
+    .orderBy(asc(evaluations.submittedAt), asc(ideaVersions.versionNo), asc(criteria.position));
+
+  const reviews = new Map<string, {
+    id: string;
+    versionNo: number;
+    stageName: string;
+    overallComment: string | null;
+    submittedAt: Date;
+    criterionComments: { name: string; comment: string }[];
+  }>();
+
+  for (const row of rows) {
+    if (!row.submittedAt) continue;
+    let review = reviews.get(row.evaluationId);
+    if (!review) {
+      review = {
+        id: row.evaluationId,
+        versionNo: row.versionNo,
+        stageName: row.stageName,
+        overallComment: row.overallComment,
+        submittedAt: row.submittedAt,
+        criterionComments: [],
+      };
+      reviews.set(row.evaluationId, review);
+    }
+    if (row.criterionName && row.criterionComment?.trim()) {
+      review.criterionComments.push({ name: row.criterionName, comment: row.criterionComment });
+    }
+  }
+
+  return [...reviews.values()];
 }
 
 export async function getSubmitterStageHistory(ideaId: string, submitterId: string) {

@@ -52,8 +52,10 @@ export async function getEvaluatorAssignment(assignmentId: string, evaluatorId: 
     .where(and(
       eq(evaluatorAssignments.id, assignmentId),
       eq(evaluatorAssignments.evaluatorId, evaluatorId),
-      eq(ideas.currentStageId, evaluatorAssignments.stageId),
-      eq(ideas.status, "in_review"),
+      or(
+        eq(evaluatorAssignments.status, "submitted"),
+        and(eq(ideas.currentStageId, evaluatorAssignments.stageId), eq(ideas.status, "in_review")),
+      ),
     ))
     .limit(1);
   if (!assignment) return null;

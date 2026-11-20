@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { PageStub } from "@/components/PageStub";
 import { ResubmissionForm } from "@/components/submit/ResubmissionForm";
 import { requireRole } from "@/lib/authorization";
-import { getActiveCategories, getPublicIdeaFeedback, getSubmissionFields, getSubmitterAwards, getSubmitterIdea, getSubmitterStageHistory } from "@/lib/server/idea-submission";
+import { getActiveCategories, getPublicIdeaFeedback, getSubmissionFields, getSubmitterAwards, getSubmitterEvaluationFeedback, getSubmitterIdea, getSubmitterStageHistory } from "@/lib/server/idea-submission";
 
 function AnswerContent({ value }: { value: unknown }) {
   if (Array.isArray(value)) return <>{value.join(", ")}</>;
@@ -31,9 +31,10 @@ async function SubmissionDetail({ params }: { params: Promise<{ id: string }> })
   const idea = await getSubmitterIdea(id, user.id);
   if (!idea) notFound();
 
-  const [history, publicFeedback, userAwards, fields, categories] = await Promise.all([
+  const [history, publicFeedback, evaluationFeedback, userAwards, fields, categories] = await Promise.all([
     getSubmitterStageHistory(id, user.id),
     getPublicIdeaFeedback(id, user.id),
+    getSubmitterEvaluationFeedback(id, user.id),
     getSubmitterAwards(id, user.id),
     idea.status === "changes_requested" ? getSubmissionFields(idea.callId) : Promise.resolve([]),
     idea.status === "changes_requested" ? getActiveCategories() : Promise.resolve([]),
@@ -59,6 +60,16 @@ async function SubmissionDetail({ params }: { params: Promise<{ id: string }> })
           <dl className="mt-4 divide-y divide-ceda-line">{answers.map(([key, value]) => <div key={key} className="grid gap-1 py-4 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] sm:gap-5"><dt className="text-sm font-semibold capitalize text-ceda-ink">{key.replaceAll("_", " ")}</dt><dd className="break-words text-sm leading-6 text-ceda-body"><AnswerContent value={value} /></dd></div>)}</dl>
         </section>}
         {history.length > 0 && <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="timeline-heading"><h2 id="timeline-heading" className="text-xl font-bold text-ceda-ink">Progress timeline</h2><ol className="mt-5 space-y-4">{history.map((item, index) => <li key={item.id} className="flex gap-3"><span aria-hidden="true" className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF1E4] text-xs font-bold text-ceda-burgundy">{index + 1}</span><span><span className="block font-semibold capitalize text-ceda-ink">{item.stageName ?? item.status.replaceAll("_", " ")}</span><span className="text-sm capitalize text-ceda-muted">{item.status.replaceAll("_", " ")} · {item.createdAt.toLocaleDateString("en-BW", { dateStyle: "medium", timeZone: "Africa/Gaborone" })}</span></span></li>)}</ol></section>}
+        {evaluationFeedback.length > 0 && <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="evaluation-feedback-heading">
+          <h2 id="evaluation-feedback-heading" className="text-xl font-bold text-ceda-ink">Evaluator feedback</h2>
+          <p className="mt-1 text-sm text-ceda-muted">Written comments from completed reviews. Evaluator-only notes remain private.</p>
+          <div className="mt-4 space-y-4">{evaluationFeedback.map((review) => <article key={review.id} className="rounded-xl bg-[#FFF9F4] p-4">
+            <p className="text-xs font-semibold text-ceda-burgundy">{review.stageName} · Version {review.versionNo} · Submitted {review.submittedAt.toLocaleDateString("en-BW", { dateStyle: "medium", timeZone: "Africa/Gaborone" })}</p>
+            {review.overallComment && <div className="mt-3"><h3 className="text-sm font-semibold text-ceda-ink">Overall feedback</h3><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-ceda-body">{review.overallComment}</p></div>}
+            {review.criterionComments.length > 0 && <ul className="mt-3 space-y-3">{review.criterionComments.map((comment, index) => <li key={`${comment.name}-${index}`}><h3 className="text-sm font-semibold text-ceda-ink">{comment.name}</h3><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-ceda-body">{comment.comment}</p></li>)}</ul>}
+            {!review.overallComment && review.criterionComments.length === 0 && <p className="mt-3 text-sm text-ceda-muted">No written comments were included in this review.</p>}
+          </article>)}</div>
+        </section>}
         {publicFeedback.length > 0 && <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="feedback-heading"><h2 id="feedback-heading" className="text-xl font-bold text-ceda-ink">Feedback and replies</h2><div className="mt-4 space-y-3">{publicFeedback.map((item) => <article key={item.id} className={`rounded-xl bg-[#FFF9F4] p-4 ${item.parentId ? "ml-5 border-l-2 border-ceda-orange sm:ml-10" : ""}`}><p className="text-xs font-semibold text-ceda-burgundy">{item.authorName} · {item.createdAt.toLocaleDateString("en-BW", { dateStyle: "medium", timeZone: "Africa/Gaborone" })}</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ceda-body">{item.body}</p></article>)}</div></section>}
         {idea.status === "changes_requested" && <div className="mt-6"><ResubmissionForm ideaId={idea.id} title={idea.title ?? ""} summary={idea.summary ?? ""} answers={idea.answers ?? {}} categoryId={idea.categoryId} fields={fields} categories={categories} /></div>}
         <p className="mt-5 text-xs text-ceda-muted">Submitted {idea.submittedAt ? idea.submittedAt.toLocaleDateString("en-BW", { dateStyle: "long", timeZone: "Africa/Gaborone" }) : "—"}</p>

@@ -161,5 +161,6 @@ export async function submitEvaluation(_previous: EvaluationState, formData: For
 
   revalidatePath("/evaluator");
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/submissions/${assignment.ideaId}`);
   return { totalScore: totalScore.toFixed(2) };
 }
