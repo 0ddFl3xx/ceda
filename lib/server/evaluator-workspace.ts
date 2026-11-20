@@ -1,8 +1,55 @@
 import "server-only";
 
-import { and, asc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { db } from "@/db";
-import { criteria, evaluatorAssignments, feedback, ideaVersions, ideas, innovationCalls, user, workflowStages } from "@/db/schema";
+import { attachments, categories, criteria, evaluations, evaluatorAssignments, feedback, formFields, ideaVersions, ideas, innovationCalls, user, workflowStages } from "@/db/schema";
+
+export async function getAvailableEvaluatorIdeas(evaluatorId: string) {
+  const submissions = await db.select({
+    ideaId: ideas.id,
+    stageId: workflowStages.id,
+    versionId: ideaVersions.id,
+    referenceNo: ideas.referenceNo,
+    status: ideas.status,
+    title: ideaVersions.title,
+    summary: ideaVersions.summary,
+    callTitle: innovationCalls.title,
+    stageName: workflowStages.name,
+    categoryName: categories.name,
+  })
+    .from(ideas)
+    .innerJoin(ideaVersions, eq(ideas.currentVersionId, ideaVersions.id))
+    .innerJoin(innovationCalls, eq(ideas.callId, innovationCalls.id))
+    .innerJoin(workflowStages, eq(ideas.currentStageId, workflowStages.id))
+    .leftJoin(categories, eq(ideas.categoryId, categories.id))
+    .where(and(
+      inArray(ideas.status, ["submitted", "in_review"]),
+      eq(workflowStages.type, "evaluation"),
+      ne(ideas.submitterId, evaluatorId),
+    ))
+    .orderBy(desc(ideas.submittedAt)).limit(200);
+  if (!submissions.length) return [];
+
+  const ideaIds = [...new Set(submissions.map(({ ideaId }) => ideaId))];
+  const versionIds = [...new Set(submissions.map(({ versionId }) => versionId))];
+  const [activeAssignments, completedEvaluations] = await Promise.all([
+    db.select({ ideaId: evaluatorAssignments.ideaId, stageId: evaluatorAssignments.stageId })
+      .from(evaluatorAssignments)
+      .where(and(
+        inArray(evaluatorAssignments.ideaId, ideaIds),
+        inArray(evaluatorAssignments.status, ["pending", "in_progress"]),
+      )),
+    db.select({ ideaId: evaluatorAssignments.ideaId, stageId: evaluatorAssignments.stageId })
+      .from(evaluations)
+      .innerJoin(evaluatorAssignments, eq(evaluations.assignmentId, evaluatorAssignments.id))
+      .where(and(inArray(evaluations.ideaVersionId, versionIds), isNotNull(evaluations.submittedAt))),
+  ]);
+  const occupied = new Set([
+    ...activeAssignments.map(({ ideaId, stageId }) => `${ideaId}:${stageId}`),
+    ...completedEvaluations.map(({ ideaId, stageId }) => `${ideaId}:${stageId}`),
+  ]);
+  return submissions.filter(({ ideaId, stageId }) => !occupied.has(`${ideaId}:${stageId}`));
+}
 
 export async function getEvaluatorAssignments(evaluatorId: string) {
   return db.select({
@@ -24,6 +71,7 @@ export async function getEvaluatorAssignments(evaluatorId: string) {
     .innerJoin(workflowStages, eq(evaluatorAssignments.stageId, workflowStages.id))
     .where(and(
       eq(evaluatorAssignments.evaluatorId, evaluatorId),
+      inArray(evaluatorAssignments.status, ["pending", "in_progress", "submitted"]),
       or(eq(ideas.currentStageId, evaluatorAssignments.stageId), eq(evaluatorAssignments.status, "submitted")),
     ))
     .orderBy(asc(evaluatorAssignments.status), asc(evaluatorAssignments.dueAt));
@@ -37,9 +85,12 @@ export async function getEvaluatorAssignment(assignmentId: string, evaluatorId: 
     referenceNo: ideas.referenceNo,
     ideaStatus: ideas.status,
     currentVersionId: ideaVersions.id,
+    versionNo: ideaVersions.versionNo,
     title: ideaVersions.title,
     summary: ideaVersions.summary,
     answers: ideaVersions.answers,
+    categoryName: categories.name,
+    callId: innovationCalls.id,
     callTitle: innovationCalls.title,
     stageId: workflowStages.id,
     stageName: workflowStages.name,
@@ -48,13 +99,14 @@ export async function getEvaluatorAssignment(assignmentId: string, evaluatorId: 
     .innerJoin(ideas, eq(evaluatorAssignments.ideaId, ideas.id))
     .innerJoin(ideaVersions, eq(ideas.currentVersionId, ideaVersions.id))
     .innerJoin(innovationCalls, eq(ideas.callId, innovationCalls.id))
+    .leftJoin(categories, eq(ideas.categoryId, categories.id))
     .innerJoin(workflowStages, eq(evaluatorAssignments.stageId, workflowStages.id))
     .where(and(
       eq(evaluatorAssignments.id, assignmentId),
       eq(evaluatorAssignments.evaluatorId, evaluatorId),
       or(
         eq(evaluatorAssignments.status, "submitted"),
-        and(eq(ideas.currentStageId, evaluatorAssignments.stageId), eq(ideas.status, "in_review")),
+        and(inArray(evaluatorAssignments.status, ["pending", "in_progress"]), eq(ideas.currentStageId, evaluatorAssignments.stageId), eq(ideas.status, "in_review")),
       ),
     ))
     .limit(1);
@@ -82,5 +134,12 @@ export async function getEvaluatorAssignment(assignmentId: string, evaluatorId: 
     ))
     .orderBy(asc(feedback.createdAt));
 
-  return { assignment, criteria: scoringCriteria, internalNotes };
+  const [submissionFields, submissionAttachments] = await Promise.all([
+    db.select({ key: formFields.key, label: formFields.label, helpText: formFields.helpText, sectionKey: formFields.sectionKey, position: formFields.position })
+      .from(formFields).where(eq(formFields.callId, assignment.callId)).orderBy(asc(formFields.sectionPosition), asc(formFields.position)),
+    db.select({ id: attachments.id, fileName: attachments.fileName, fileUrl: attachments.fileUrl, mimeType: attachments.mimeType, fileSize: attachments.fileSize })
+      .from(attachments).where(eq(attachments.ideaVersionId, assignment.currentVersionId)).orderBy(asc(attachments.createdAt)),
+  ]);
+
+  return { assignment, criteria: scoringCriteria, internalNotes, submissionFields, submissionAttachments };
 }

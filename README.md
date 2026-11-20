@@ -48,7 +48,7 @@ npm run build
 - Sign-in supports email/password and passkeys. Passkeys require `PASSKEY_RP_ID` and `PASSKEY_ORIGIN` to match the deployed domain.
 - Development may print OTP codes to the server console when Gmail SMTP is not configured. This fallback is disabled in production.
 - Seed built-in roles before registering accounts. Self-registration grants only the submitter role; staff roles are assigned by administrators.
-- Phone number collection during registration is temporarily disabled, so signup works without Twilio credentials. The prototype supports password change, role assignment, in-app idea following, and in-app lifecycle notifications. Email/SMS alerts, secure file upload, and phone verification are not connected.
+- Phone number collection during registration is temporarily disabled, so signup works without Twilio credentials. The prototype supports password change, role assignment, evaluator self-claim, in-app notifications, and email lifecycle/chat alerts when Gmail SMTP is configured and recipients opt in. SMS alerts, secure file upload, and phone verification are not connected.
 
 ## Architecture notes
 

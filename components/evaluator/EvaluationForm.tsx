@@ -5,6 +5,8 @@ import { useActionState } from "react";
 import { addEvaluatorInternalNote, submitEvaluation, type EvaluationState, type InternalNoteState } from "@/app/evaluator/assignments/actions";
 
 type Criterion = { id: string; name: string; description: string | null; maxScore: number; weight: string };
+type SubmissionField = { key: string; label: string; helpText: string | null; sectionKey: string; position: number };
+type SubmissionAttachment = { id: string; fileName: string; fileUrl: string; mimeType: string | null; fileSize: number | null };
 type Props = {
   assignmentId: string;
   versionId: string;
@@ -12,7 +14,11 @@ type Props = {
   stageName: string;
   title: string;
   summary: string;
+  categoryName: string | null;
+  versionNo: number;
   answers: Record<string, unknown>;
+  submissionFields: SubmissionField[];
+  submissionAttachments: SubmissionAttachment[];
   criteria: Criterion[];
   internalNotes: { id: string; body: string; authorName: string; createdAt: Date }[];
 };
@@ -20,16 +26,40 @@ type Props = {
 const initialState: EvaluationState = {};
 const initialNoteState: InternalNoteState = {};
 const inputClass = "mt-1 block min-h-11 w-full rounded-xl border border-[#9A8175] bg-white px-3.5 py-2.5 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";
+const sections: Record<string, string> = { general_information: "General information", solution_status: "Solution status", solution_overview: "Solution overview", type_of_innovation: "Type of innovation", additional_information: "Additional information", solution_documents: "Solution documents", terms_and_conditions: "Terms and conditions" };
 
-export function EvaluationForm({ assignmentId, versionId, referenceNo, stageName, title, summary, answers, criteria, internalNotes }: Props) {
+function AnswerValue({ value }: { value: unknown }) {
+  const values = Array.isArray(value) ? value : [value];
+  return <>{values.map((item, index) => {
+    const text = typeof item === "boolean" ? (item ? "Yes" : "No") : String(item ?? "—");
+    let url: URL | null = null;
+    try { const parsed = new URL(text); if (parsed.protocol === "https:" || parsed.protocol === "http:") url = parsed; } catch { /* Display as text. */ }
+    return <span key={`${index}-${text}`} className="block">{url ? <a href={url.href} target="_blank" rel="noreferrer" className="break-all font-semibold text-ceda-burgundy underline underline-offset-2">{text}</a> : text}</span>;
+  })}</>;
+}
+
+export function EvaluationForm({ assignmentId, versionId, referenceNo, stageName, title, summary, categoryName, versionNo, answers, submissionFields, submissionAttachments, criteria, internalNotes }: Props) {
   const [state, action, pending] = useActionState(submitEvaluation, initialState);
   const [noteState, noteAction, notePending] = useActionState(addEvaluatorInternalNote, initialNoteState);
 
   if (state.totalScore) return <section className="rounded-2xl border border-green-800/20 bg-green-50 p-6" aria-live="polite"><p className="text-xs font-bold uppercase tracking-[0.18em] text-green-900">Review submitted</p><h2 className="mt-2 text-2xl font-bold text-ceda-ink">Weighted score: {state.totalScore} / 100</h2><p className="mt-2 text-sm text-ceda-body">Your evaluation has been saved against this exact submission version.</p><Link href="/evaluator" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-ceda-burgundy px-5 text-sm font-bold text-white">Return to evaluator queue</Link></section>;
 
   return <div className="space-y-6">
-    <section className="rounded-2xl border border-ceda-line bg-white p-6 sm:p-8"><p className="text-xs font-bold uppercase tracking-wide text-ceda-burgundy">{referenceNo} · {stageName}</p><h2 className="mt-2 text-2xl font-bold text-ceda-ink">{title}</h2><p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-ceda-body">{summary}</p>
-      {Object.keys(answers).length > 0 && <dl className="mt-5 divide-y divide-ceda-line border-t border-ceda-line">{Object.entries(answers).map(([key, value]) => <div key={key} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] sm:gap-5"><dt className="text-sm font-semibold capitalize text-ceda-ink">{key.replaceAll("_", " ")}</dt><dd className="break-words text-sm leading-6 text-ceda-body">{Array.isArray(value) ? value.join(", ") : typeof value === "boolean" ? (value ? "Yes" : "No") : String(value ?? "—")}</dd></div>)}</dl>}
+    <section className="rounded-2xl border border-ceda-line bg-white p-6 sm:p-8">
+      <p className="text-xs font-bold uppercase tracking-wide text-ceda-burgundy">{referenceNo} | {stageName} | Version {versionNo}</p>
+      <h2 className="mt-2 text-2xl font-bold text-ceda-ink">{title}</h2>
+      {categoryName && <p className="mt-1 text-sm font-semibold text-ceda-muted">{categoryName}</p>}
+      <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-ceda-body">{summary}</p>
+      {Object.keys(answers).length > 0 && <div className="mt-6 space-y-5">{[...new Set([...submissionFields.map(({ sectionKey }) => sectionKey), "general_information"])].map((sectionKey) => {
+        const fields = submissionFields.filter((field) => field.sectionKey === sectionKey);
+        const rows = fields.filter(({ key }) => Object.hasOwn(answers, key)).map(({ key, label, helpText }) => ({ key, label, helpText, value: answers[key] }));
+        const builtinKeys = sectionKey === "solution_status" ? ["solution_status"] : sectionKey === "type_of_innovation" ? ["innovation_types"] : [];
+        for (const key of builtinKeys) if (Object.hasOwn(answers, key) && !rows.some((row) => row.key === key)) rows.push({ key, label: key === "solution_status" ? "Current solution status" : "Innovation type(s)", helpText: null, value: answers[key] });
+        for (const [key, value] of Object.entries(answers)) if (!submissionFields.some((field) => field.key === key) && !["solution_status", "innovation_types"].includes(key) && sectionKey === "general_information") rows.push({ key, label: key.replaceAll("_", " "), helpText: null, value });
+        if (!rows.length) return null;
+        return <section key={sectionKey} aria-label={sections[sectionKey] ?? sectionKey.replaceAll("_", " ")}><h3 className="border-b border-ceda-line pb-2 text-sm font-bold uppercase tracking-wide text-ceda-burgundy">{sections[sectionKey] ?? sectionKey.replaceAll("_", " ")}</h3><dl className="divide-y divide-ceda-line">{rows.map((row) => <div key={row.key} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] sm:gap-5"><dt className="text-sm font-semibold text-ceda-ink">{row.label}{row.helpText && <span className="mt-1 block text-xs font-normal leading-5 text-ceda-muted">{row.helpText}</span>}</dt><dd className="break-words text-sm leading-6 text-ceda-body"><AnswerValue value={row.value} /></dd></div>)}</dl></section>;
+      })}</div>}
+      {submissionAttachments.length > 0 && <section className="mt-6" aria-labelledby="submission-files-heading"><h3 id="submission-files-heading" className="text-sm font-bold text-ceda-ink">Supporting files</h3><ul className="mt-2 space-y-2">{submissionAttachments.map((file) => <li key={file.id}><a href={file.fileUrl} target="_blank" rel="noreferrer" className="break-all text-sm font-semibold text-ceda-burgundy underline underline-offset-2">{file.fileName}</a></li>)}</ul></section>}
     </section>
     <form action={action} aria-labelledby="evaluation-heading" className="space-y-5 rounded-2xl border border-ceda-line bg-white p-6 shadow-sm sm:p-8">
       <input type="hidden" name="assignmentId" value={assignmentId} />

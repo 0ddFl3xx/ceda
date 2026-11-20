@@ -8,7 +8,7 @@ import { categories, formFields, ideaStageHistory, ideaSubscriptions, ideaVersio
 import { requireRole } from "@/lib/authorization";
 import { writeAudit } from "@/lib/server/audit";
 import { validateDynamicAnswers } from "@/lib/server/submission-validation";
-import { insertInAppNotifications } from "@/lib/server/notifications";
+import { dispatchNotificationEmails, getUsersWithRole, insertInAppNotifications } from "@/lib/server/notifications";
 
 export type SubmissionState = { error?: string; fieldErrors?: Record<string, string>; referenceNo?: string; draftId?: string; savedAt?: string };
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
@@ -121,10 +121,10 @@ export async function submitIdeaAction(formData: FormData): Promise<SubmissionSt
   const [fieldDefinitions, stageRows, categoryRows] = await Promise.all([
     db.select({ key: formFields.key, label: formFields.label, type: formFields.type, required: formFields.required, options: formFields.options })
       .from(formFields).where(and(eq(formFields.callId, call.id), eq(formFields.isActive, true))).orderBy(asc(formFields.position)),
-    db.select({ id: workflowStages.id }).from(workflowStages).where(eq(workflowStages.callId, call.id)).orderBy(asc(workflowStages.position)).limit(1),
+    db.select({ id: workflowStages.id }).from(workflowStages).where(and(eq(workflowStages.callId, call.id), eq(workflowStages.type, "evaluation"))).orderBy(asc(workflowStages.position)).limit(1),
     uuidPattern.test(categoryId) ? db.select({ id: categories.id }).from(categories).where(and(eq(categories.id, categoryId), eq(categories.isActive, true))).limit(1) : Promise.resolve([]),
   ]);
-  if (!stageRows[0]) return { error: "This opportunity is missing workflow configuration. Contact CEDA for help." };
+  if (!stageRows[0]) return { error: "This opportunity has no evaluation stage configured. Contact CEDA for help." };
   if (!categoryRows[0]) fieldErrors.categoryId = "Choose a valid category.";
   const { answers: validatedAnswers, fieldErrors: answerErrors } = validateDynamicAnswers(formData, fieldDefinitions);
   Object.assign(fieldErrors, answerErrors);
@@ -138,6 +138,7 @@ export async function submitIdeaAction(formData: FormData): Promise<SubmissionSt
     solution_status: readText(formData, "solutionStatus"),
     innovation_types: formData.getAll("innovationTypes").filter((value): value is string => typeof value === "string").slice(0, 10),
   };
+  const emailEvents = [{ userId: user.id, ideaId: idea.id, type: "idea_submitted", title: "Submission received", body: `Your submission ${idea.referenceNo} has been received for ${call.title}.` }];
   await db.transaction(async (tx) => {
     await tx.update(ideaVersions).set({ title, summary, answers, termsAcceptedAt: now, submittedAt: now })
       .where(and(eq(ideaVersions.id, idea.currentVersionId!), eq(ideaVersions.ideaId, idea.id)));
@@ -145,9 +146,13 @@ export async function submitIdeaAction(formData: FormData): Promise<SubmissionSt
       .where(and(eq(ideas.id, idea.id), eq(ideas.submitterId, user.id), eq(ideas.status, "draft")));
     await tx.insert(ideaStageHistory).values({ ideaId: idea.id, toStageId: stageRows[0].id, toStatus: "submitted", actorId: user.id, note: "Innovation submission received." });
     await tx.insert(ideaSubscriptions).values({ userId: user.id, ideaId: idea.id }).onConflictDoNothing();
-    await insertInAppNotifications(tx, [{ userId: user.id, ideaId: idea.id, type: "idea_submitted", title: "Submission received", body: `Your submission ${idea.referenceNo} has been received for ${call.title}.` }]);
+    const evaluatorUsers = await getUsersWithRole(tx, "evaluator");
+    const queueEvents = evaluatorUsers.filter(({ id }) => id !== user.id).map(({ id }) => ({ userId: id, ideaId: idea.id, type: "evaluation_available", title: "Submission available to review", body: `Submission ${idea.referenceNo} is ready to claim in the evaluator queue.` }));
+    emailEvents.push(...queueEvents);
+    await insertInAppNotifications(tx, [emailEvents[0], ...queueEvents]);
     await writeAudit(tx, { actorId: user.id, action: "idea.submitted", entityType: "idea", entityId: idea.id, metadata: { referenceNo: idea.referenceNo, callId: call.id, versionNo: 1 } });
   });
+  await dispatchNotificationEmails(emailEvents);
   revalidatePath("/dashboard");
   return { referenceNo: idea.referenceNo };
 }

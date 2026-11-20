@@ -34,3 +34,21 @@ export async function sendAuthCode(email: string, otp: string, type: AuthMailTyp
     text: `Your verification code is ${otp}. It expires in five minutes. If you did not request this, you can ignore this email.`,
   });
 }
+
+export async function sendNotificationEmail(email: string, title: string, body: string) {
+  const user = process.env.GMAIL_USER?.trim();
+  const pass = process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, "");
+  if (!user || !pass) {
+    if (process.env.NODE_ENV === "production") throw new Error("Gmail SMTP credentials are required in production.");
+    console.info(`[dev email] notification for ${email}: ${title}`);
+    return;
+  }
+  const transporter = nodemailer.createTransport({ service: "gmail", auth: { user, pass } });
+  const portalUrl = (process.env.BETTER_AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  await transporter.sendMail({
+    from: `CEDA Innovation Portal <${user}>`,
+    to: email,
+    subject: title,
+    text: `${body}\n\nView your notifications: ${portalUrl}/notifications`,
+  });
+}

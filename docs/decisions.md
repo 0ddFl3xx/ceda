@@ -9,7 +9,7 @@
 - Use database-backed roles and permissions. New registrations receive `submitter`; staff roles are granted by an administrator. Add `consultant` for the call-centre queue and `committee_member` for read-only progress monitoring.
 - Use Gmail SMTP via an app password for email verification and notifications. Keep any development mail fallback local-only and clearly labelled.
 - Keep self-registration email-only for the first release. Phone numbers are not collected at signup until a verified add-phone/account-settings flow is ready; Twilio remains optional and must not block account creation.
-- Evaluators are assigned by administrators. Scores are criterion-specific and the overall score is the weighted total using the criteria version active for that evaluation.
+- Administrators grant staff roles; evaluators claim one available submission at a time from the shared evaluation queue. Scores are criterion-specific and the overall score is the weighted total using the criteria version active for that evaluation.
 - Chat consultants are a distinct `consultant` role with a queue/dashboard, not a submitter or evaluator capability. Chat availability is configurable in system settings.
 - The schema overview supplied by the project owner is the source for the data model. The implementation will add only changes needed by the application and will record them here.
 

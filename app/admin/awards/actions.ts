@@ -8,7 +8,7 @@ import { awards, ideaStageHistory, ideas, workflowStages } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
 import { writeAudit } from "@/lib/server/audit";
 import { notifyIdeaFollowers } from "@/lib/server/idea-alerts";
-import { insertInAppNotifications } from "@/lib/server/notifications";
+import { dispatchNotificationEmails, insertInAppNotifications } from "@/lib/server/notifications";
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
@@ -26,6 +26,7 @@ export async function grantAward(formData: FormData) {
   const [awardStage] = await db.select({ id: workflowStages.id })
     .from(workflowStages).where(and(eq(workflowStages.callId, idea.callId), eq(workflowStages.type, "award"))).limit(1);
   if (!awardStage) redirect("/admin/awards?error=configuration");
+  const notificationEvent = { userId: idea.submitterId, ideaId: idea.id, type: "award_granted", title: "Your idea received an award", body: `${idea.referenceNo} has received ${title}${tierInput ? ` (${tierInput})` : ""}.` };
 
   await db.transaction(async (tx) => {
     const [updated] = await tx.update(ideas)
@@ -49,13 +50,7 @@ export async function grantAward(formData: FormData) {
       actorId: admin.id,
       note: `Award granted: ${title}${tierInput ? ` (${tierInput})` : ""}.`,
     });
-    await insertInAppNotifications(tx, [{
-      userId: idea.submitterId,
-      ideaId: idea.id,
-      type: "award_granted",
-      title: "Your idea received an award",
-      body: `${idea.referenceNo} has received ${title}${tierInput ? ` (${tierInput})` : ""}.`,
-    }]);
+    await insertInAppNotifications(tx, [notificationEvent]);
     await notifyIdeaFollowers(tx, {
       ideaId: idea.id,
       actorId: admin.id,
@@ -72,6 +67,7 @@ export async function grantAward(formData: FormData) {
       metadata: { referenceNo: idea.referenceNo, title, tier: tierInput || null },
     });
   });
+  await dispatchNotificationEmails([notificationEvent]);
 
   revalidatePath("/admin/awards");
   revalidatePath("/admin/reports");

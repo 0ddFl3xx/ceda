@@ -14,11 +14,11 @@ const faqs = [
   },
   {
     q: "Can I receive feedback and revise my submission?",
-    a: "Yes. An adjudicator can request changes, and the submitter can respond with a new, versioned submission. Updates appear in the portal. Email and SMS alerts, and direct file uploads, are not connected in this prototype; supporting material can be shared as a link.",
+    a: "Yes. An adjudicator can request changes, and the submitter can respond with a new, versioned submission. Updates appear in the portal and can be emailed when the account has a verified address, email alerts are enabled, and portal SMTP is configured. SMS and direct file uploads are not connected; supporting material can be shared as a link.",
   },
   {
     q: "Are there any application or subscription fees?",
-    a: "The prototype does not charge or process application fees. Following a submission is free and records in-portal notifications when its workflow changes. Email and SMS alert delivery are not connected.",
+    a: "The prototype does not charge or process application fees. Following a submission is free and records in-portal notifications when its workflow changes. Email alerts are available when configured and enabled; SMS is not connected.",
   },
   {
     q: "How can I contact the relevant regulatory and innovation authorities?",

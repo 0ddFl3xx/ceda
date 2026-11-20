@@ -1,14 +1,14 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { categories, evaluatorAssignments, feedback, formFields, ideaStageHistory, ideas, ideaVersions, workflowStages } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
 import { writeAudit } from "@/lib/server/audit";
 import { notifyIdeaFollowers } from "@/lib/server/idea-alerts";
-import { insertInAppNotifications } from "@/lib/server/notifications";
+import { dispatchNotificationEmails, getUsersWithRole, insertInAppNotifications } from "@/lib/server/notifications";
 import { validateDynamicAnswers } from "@/lib/server/submission-validation";
 import type { SubmissionState } from "@/app/submit/actions";
 
@@ -60,6 +60,7 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
   const versionNo = (lastVersion[0]?.versionNo ?? 0) + 1;
   const versionId = randomUUID();
   const stage = stageRows[0];
+  const emailEvents = [{ userId: submitter.id, ideaId: idea.id, type: "idea_resubmitted", title: "Updated submission received", body: `Version ${versionNo} of ${idea.referenceNo} has been submitted for review.` }];
   await db.transaction(async (tx) => {
     const [latestFeedback] = await tx.select({ id: feedback.id }).from(feedback)
       .where(and(eq(feedback.ideaId, idea.id), eq(feedback.isInternal, false), eq(feedback.requiresResponse, true)))
@@ -91,6 +92,8 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
       status: "in_review",
       submittedAt: now,
     }).where(eq(ideas.id, idea.id));
+    await tx.update(evaluatorAssignments).set({ status: "declined" })
+      .where(and(eq(evaluatorAssignments.ideaId, idea.id), inArray(evaluatorAssignments.status, ["pending", "in_progress"])));
     await tx.insert(ideaStageHistory).values({
       ideaId: idea.id,
       fromStageId: idea.currentStageId,
@@ -100,28 +103,10 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
       note: `Resubmitted as version ${versionNo} after requested changes.`,
     });
 
-    const existingAssignments = await tx.select({ id: evaluatorAssignments.id, evaluatorId: evaluatorAssignments.evaluatorId })
-      .from(evaluatorAssignments).innerJoin(workflowStages, eq(evaluatorAssignments.stageId, workflowStages.id))
-      .where(and(eq(evaluatorAssignments.ideaId, idea.id), eq(workflowStages.callId, idea.callId), eq(workflowStages.type, "evaluation")));
-    if (existingAssignments.length) {
-      for (const assignment of existingAssignments) {
-        await tx.update(evaluatorAssignments).set({ status: "pending" }).where(eq(evaluatorAssignments.id, assignment.id));
-        await insertInAppNotifications(tx, [{
-          userId: assignment.evaluatorId,
-          ideaId: idea.id,
-          type: "evaluation_assigned",
-          title: "Resubmission ready for review",
-          body: `Submission ${idea.referenceNo} has a new version (${versionNo}) for your review.`,
-        }]);
-      }
-    }
-    await insertInAppNotifications(tx, [{
-      userId: submitter.id,
-      ideaId: idea.id,
-      type: "idea_resubmitted",
-      title: "Updated submission received",
-      body: `Version ${versionNo} of ${idea.referenceNo} has been submitted for review.`,
-    }]);
+    const evaluatorUsers = await getUsersWithRole(tx, "evaluator");
+    const queueEvents = evaluatorUsers.filter(({ id }) => id !== submitter.id).map(({ id }) => ({ userId: id, ideaId: idea.id, type: "evaluation_available", title: "Resubmission available to review", body: `Updated version ${versionNo} of ${idea.referenceNo} is ready to claim.` }));
+    emailEvents.push(...queueEvents);
+    await insertInAppNotifications(tx, [emailEvents[0], ...queueEvents]);
     await notifyIdeaFollowers(tx, {
       ideaId: idea.id,
       actorId: submitter.id,
@@ -137,6 +122,7 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
       metadata: { referenceNo: idea.referenceNo, versionNo, previousVersionId: idea.currentVersionId, versionId },
     });
   });
+  await dispatchNotificationEmails(emailEvents);
 
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/submissions/${idea.id}`);

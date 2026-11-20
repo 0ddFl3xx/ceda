@@ -36,6 +36,6 @@ async function CommitteeContent({ searchParams }: { searchParams: Promise<{ [key
       </table>
     </div>
     {ideas.length === 0 && <p className="mt-4 rounded-xl bg-white p-6 text-sm text-ceda-muted">No submitted ideas are available yet.</p>}
-    <p className="mt-4 text-xs leading-5 text-ceda-muted">Following records your interest and is included in the audit trail. Email and SMS alerts are not configured in this prototype.</p>
+    <p className="mt-4 text-xs leading-5 text-ceda-muted">Following records your interest and is included in the audit trail. In-portal alerts appear in Notifications; SMS delivery is not connected.</p>
   </div></main>;
 }

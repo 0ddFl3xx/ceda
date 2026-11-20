@@ -6,14 +6,14 @@ import { ArrowRight, Search, ArrowDown } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative isolate mx-4 my-6 flex min-h-[620px] max-w-[1380px] flex-col justify-center overflow-hidden rounded-2xl border border-[#7A1F14]/10 bg-gradient-to-b from-[#FFF6EE] via-[#FFF0E2] to-[#F6DCCB] px-4 sm:mx-6 sm:px-8 lg:mx-auto lg:min-h-[min(76dvh,760px)] lg:px-12">
+    <section className="relative isolate mx-3 my-4 flex min-h-[min(100dvh,720px)] max-w-[1380px] flex-col justify-center overflow-hidden rounded-2xl border border-[#7A1F14]/10 bg-gradient-to-b from-[#FFF6EE] via-[#FFF0E2] to-[#F6DCCB] px-4 sm:mx-6 sm:my-6 sm:px-8 lg:mx-auto lg:min-h-[min(76dvh,760px)] lg:px-12">
       
       {/* =========================================================================
           BACKGROUND GRAPHICAL PATTERNS (Sampled from Reference)
       ========================================================================== */}
       {/* 1. Dotted pattern in top-left corner */}
       <div 
-        className="absolute top-0 left-0 w-80 h-80 pointer-events-none opacity-40"
+        className="pointer-events-none absolute left-0 top-0 h-56 w-56 opacity-20 sm:h-80 sm:w-80 sm:opacity-40"
         style={{
           backgroundImage: `radial-gradient(#7A1F14 1.2px, transparent 1.2px)`,
           backgroundSize: "20px 20px"
@@ -36,7 +36,7 @@ export function HeroSection() {
 
       {/* 3. Diagonal line pattern in bottom-left corner */}
       <div 
-        className="absolute bottom-0 left-0 w-64 h-64 pointer-events-none opacity-10"
+        className="pointer-events-none absolute bottom-0 left-0 h-40 w-40 opacity-[0.04] sm:h-64 sm:w-64 sm:opacity-10"
         style={{
           backgroundImage: `repeating-linear-gradient(45deg, #7A1F14, #7A1F14 1.5px, transparent 1.5px, transparent 14px)`
         }}
@@ -44,7 +44,7 @@ export function HeroSection() {
 
       {/* 4. Diagonal line pattern in bottom-right corner */}
       <div 
-        className="absolute bottom-0 right-0 w-72 h-72 pointer-events-none opacity-30"
+        className="pointer-events-none absolute bottom-0 right-0 h-44 w-44 opacity-[0.08] sm:h-72 sm:w-72 sm:opacity-20"
         style={{
           backgroundImage: `repeating-linear-gradient(-45deg, #E8710A, #E8710A 1.5px, transparent 1.5px, transparent 16px)`
         }}
@@ -78,15 +78,15 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Column: Headlines & Call to Actions */}
-          <div className="lg:col-span-7 xl:col-span-6 space-y-6 text-center lg:text-left z-10">
+          <div className="z-10 space-y-5 text-center lg:col-span-7 lg:space-y-6 lg:text-left xl:col-span-6">
             {/* Large Two-Tone Headline (Reference Match: "COMPETITION / HACKATHON") */}
-            <h1 className="text-5xl sm:text-6xl lg:text-[72px] font-black tracking-tight leading-[0.92]">
+            <h1 className="text-[clamp(2.35rem,11vw,3.75rem)] font-black leading-[0.92] tracking-tight lg:text-[72px]">
               <span className="block text-[#7A1F14]">INNOVATION</span>
               <span className="block text-[#E8710A] mt-1.5">PORTAL</span>
             </h1>
 
             {/* Subheading in bold */}
-            <h2 className="text-xl sm:text-2xl font-black text-[#37231A] tracking-tight">
+            <h2 className="text-lg font-black tracking-tight text-[#37231A] sm:text-2xl">
               Innovate. Build. Transform.
             </h2>
 

@@ -15,17 +15,16 @@ Use six distinct, verified accounts for the cleanest demonstration: submitter, a
 ## Submission through award
 
 1. **Submitter:** Sign in and choose **Submitter dashboard**. Create an idea, complete the configured fields and terms, save the draft, then submit it. Confirm it appears in the dashboard and has a reference number and initial status.
-2. **Administrator:** Open **Assign evaluators** at `/admin/reviews`. Assign an evaluator to the first evaluation stage.
-3. **Evaluator:** Sign in as the assigned evaluator and open **Evaluator workspace**. Add a private evaluator note and confirm it appears only in the evaluator workspace. Score every active criterion and submit the review. The workflow advances when all assigned evaluators for that stage have submitted.
-4. **Administrator:** Assign an evaluator to the next evaluation stage, then repeat the scoring step. The idea moves to adjudication after the final evaluation stage is complete.
+2. **Evaluator:** Sign in and open **Evaluation queue**. Claim an available submission, inspect its full form answers and supporting links, add a private evaluator note, score every active criterion, and submit the review. The submission moves through evaluation stages automatically.
+3. **Evaluator:** When the next evaluation stage is ready, an in-app notification and email are sent to evaluator-role accounts; an evaluator claims it from the shared queue. The submission moves to adjudication after its final evaluation stage.
 5. **Adjudicator:** Open `/adjudicator`, review scores and proposal details, then approve the idea with a rationale of at least 20 characters.
 6. **Administrator:** Open **Grant awards** at `/admin/awards`, add a title and optional tier/details. Granting the award records the recognition, advances the idea to the award stage, and notifies the submitter in the portal.
 7. **Submitter:** Reopen the submission detail page and confirm its final status, progress timeline, and award.
-8. **Submitter:** Open `/account/settings`, change the in-portal alert preference, and save. Email/SMS selections are stored but their delivery is not connected.
+8. **Submitter:** Open `/notifications` to read in-portal alerts. Open `/account/settings` to manage in-portal and email delivery preferences. Email requires working Gmail SMTP credentials; SMS is not connected.
 
 ## Feedback loop
 
-Use another test submission. After evaluation, have the adjudicator choose **Request changes** and enter actionable rationale. The submitter should see public feedback and a resubmission form. Submit a revised version and confirm the version number increases while the old version remains in history. The evaluator assignments return to pending for the new review.
+Use another test submission. After evaluation, have the adjudicator choose **Request changes** and enter actionable rationale. The submitter should see public feedback and a resubmission form. Submit a revised version and confirm the version number increases while the old version remains in history. The revised submission returns to the evaluator queue for a new claim.
 
 ## Committee monitoring
 
@@ -37,7 +36,7 @@ Sign in as submitter and open the CEDA Consultant chat. Start a conversation and
 
 ## Expected prototype limits
 
-- Idea-follow and lifecycle alerts are persisted as in-app notifications. Email and SMS alert delivery are not connected.
+- Idea-follow alerts are persisted in-app. Lifecycle and consultant chat alerts are available in-app and by email when the recipient has verified their email and enabled email notifications. SMS is not connected.
 - Social sign-in buttons are visual placeholders and do not authenticate.
 - The supporting-material fields accept links; secure file upload is not implemented.
 - External verification email needs working Gmail SMTP credentials; local development otherwise prints the code to the server console.

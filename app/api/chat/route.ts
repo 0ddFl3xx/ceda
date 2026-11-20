@@ -6,7 +6,7 @@ import { chatConversations, chatMessages, user } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { getUserRoles } from "@/lib/authorization";
 import { writeAudit } from "@/lib/server/audit";
-import { insertInAppNotifications } from "@/lib/server/notifications";
+import { dispatchNotificationEmails, getUsersWithRole, insertInAppNotifications } from "@/lib/server/notifications";
 
 function isConsultantOpen() {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -81,11 +81,16 @@ export async function POST(request: Request) {
       .where(and(eq(chatConversations.requesterId, currentUser.id), inArray(chatConversations.status, ["waiting", "active"])))
       .orderBy(desc(chatConversations.startedAt)).limit(1);
     if (active) return NextResponse.json({ conversationId: active.id });
-    const [conversation] = await db.transaction(async (tx) => {
+    const { conversation, events } = await db.transaction(async (tx) => {
       const [created] = await tx.insert(chatConversations).values({ requesterId: currentUser.id, status: "waiting" }).returning({ id: chatConversations.id });
-      if (created) await writeAudit(tx, { actorId: currentUser.id, action: "chat.started", entityType: "chat_conversation", entityId: created.id });
-      return [created];
+      if (!created) throw new Error("The consultant conversation could not be created.");
+      await writeAudit(tx, { actorId: currentUser.id, action: "chat.started", entityType: "chat_conversation", entityId: created.id });
+      const consultants = await getUsersWithRole(tx, "consultant");
+      const notificationEvents = consultants.filter(({ id }) => id !== currentUser.id).map(({ id }) => ({ userId: id, type: "chat_waiting", title: "A submitter requested a consultant", body: "A new conversation is waiting in the consultant queue." }));
+      await insertInAppNotifications(tx, notificationEvents);
+      return { conversation: created, events: notificationEvents };
     });
+    await dispatchNotificationEmails(events);
     return NextResponse.json({ conversationId: conversation.id }, { status: 201 });
   }
 
@@ -96,16 +101,18 @@ export async function POST(request: Request) {
     const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.id, payload.conversationId)).limit(1);
     if (!conversation) return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
     if (payload.action === "claim" && conversation.status === "waiting" && !conversation.agentId) {
-      const claimed = await db.transaction(async (tx) => {
+      const result = await db.transaction(async (tx) => {
         const [updated] = await tx.update(chatConversations).set({ agentId: currentUser.id, status: "active" })
           .where(and(eq(chatConversations.id, conversation.id), eq(chatConversations.status, "waiting"), isNull(chatConversations.agentId)))
           .returning({ id: chatConversations.id });
-        if (!updated) return false;
-        await insertInAppNotifications(tx, [{ userId: conversation.requesterId, type: "chat_agent_joined", title: "A CEDA consultant joined your chat", body: "A consultant is now available in your conversation." }]);
+        if (!updated) return null;
+        const event = { userId: conversation.requesterId, type: "chat_agent_joined", title: "A CEDA consultant joined your chat", body: "A consultant is now available in your conversation." };
+        await insertInAppNotifications(tx, [event]);
         await writeAudit(tx, { actorId: currentUser.id, action: "chat.claimed", entityType: "chat_conversation", entityId: conversation.id });
-        return true;
+        return event;
       });
-      if (!claimed) return NextResponse.json({ error: "Another consultant claimed this conversation first." }, { status: 409 });
+      if (!result) return NextResponse.json({ error: "Another consultant claimed this conversation first." }, { status: 409 });
+      await dispatchNotificationEmails([result]);
     } else if (payload.action === "close" && conversation.agentId === currentUser.id && conversation.status === "active") {
       const closed = await db.transaction(async (tx) => {
         const [updated] = await tx.update(chatConversations).set({ status: "closed", closedAt: new Date() })
@@ -139,15 +146,21 @@ export async function POST(request: Request) {
     .where(and(eq(chatMessages.senderId, currentUser.id), gt(chatMessages.createdAt, cutoff)));
   if (Number(recent?.total ?? 0) >= 8) return NextResponse.json({ error: "Please wait a moment before sending another message." }, { status: 429 });
 
-  await db.transaction(async (tx) => {
+  const notificationEvents = await db.transaction(async (tx) => {
     await tx.insert(chatMessages).values({ conversationId: conversation.id, senderId: currentUser.id, body });
     const recipientId = isRequester ? conversation.agentId : conversation.requesterId;
-    if (recipientId) await insertInAppNotifications(tx, [{
+    const events = recipientId ? [{
       userId: recipientId,
       type: "chat_message",
       title: "New consultant chat message",
       body: "There is a new message in your CEDA consultant conversation.",
-    }]);
+    }] : isRequester ? (await getUsersWithRole(tx, "consultant")).filter(({ id }) => id !== currentUser.id).map(({ id }) => ({
+      userId: id,
+      type: "chat_message",
+      title: "New message in the consultant queue",
+      body: "A submitter sent a message in a conversation waiting to be claimed.",
+    })) : [];
+    await insertInAppNotifications(tx, events);
     await writeAudit(tx, {
       actorId: currentUser.id,
       action: "chat.message_sent",
@@ -155,6 +168,8 @@ export async function POST(request: Request) {
       entityId: conversation.id,
       metadata: { senderRole: isRequester ? "requester" : "consultant" },
     });
+    return events;
   });
+  await dispatchNotificationEmails(notificationEvents);
   return NextResponse.json({ ok: true });
 }

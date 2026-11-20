@@ -19,7 +19,7 @@ This plan follows the supplied requirements sheet and the existing database sche
 - [x] Add committee monitoring with follow/unfollow controls and in-app lifecycle notifications for followed ideas.
 - [x] Complete the approval-to-award handoff with an administrator award screen, final workflow history, and submitter-visible recognition.
 - [x] Make published FAQs database-driven and add audited administrator create, edit, publish, and delete actions.
-- [x] Add account notification preferences; in-app alert creation respects the in-app setting. Email and SMS selections are stored but delivery is not connected.
+- [x] Add a notification inbox, in-app/email delivery for lifecycle and consultant-chat events, and channel preferences. Email requires valid Gmail SMTP; SMS is not connected.
 - [x] Replace the public FAQ's inaccurate encryption and email/SMS claims, and verify the displayed authority contacts against their official sites.
 - [x] Replace the privacy placeholder with a factual prototype data-handling notice that clearly requires CEDA legal/privacy review before production use.
 - [x] Add a support page with verified CEDA contact channels and visibly labeled prototype response targets pending CEDA approval.

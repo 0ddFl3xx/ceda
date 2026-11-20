@@ -8,7 +8,7 @@ import { adjudications, feedback, ideaStageHistory, ideas, workflowStages } from
 import { requireRole } from "@/lib/authorization";
 import { writeAudit } from "@/lib/server/audit";
 import { notifyIdeaFollowers } from "@/lib/server/idea-alerts";
-import { insertInAppNotifications } from "@/lib/server/notifications";
+import { dispatchNotificationEmails, insertInAppNotifications } from "@/lib/server/notifications";
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
@@ -44,6 +44,15 @@ export async function decideSubmission(formData: FormData) {
     .where(and(eq(workflowStages.callId, idea.callId), eq(workflowStages.type, targetType))).limit(1) : [];
   const nextStageId = targetStage?.id ?? currentStage.id;
   const newStatus = decisionValue === "approved" ? "approved" : decisionValue === "rejected" ? "rejected" : "changes_requested";
+  const notificationEvent = {
+    userId: idea.submitterId,
+    ideaId: idea.id,
+    type: decisionValue === "needs_revision" ? "changes_requested" : "decision_recorded",
+    title: decisionValue === "needs_revision" ? "Changes requested" : `Decision: ${decisionValue}`,
+    body: decisionValue === "needs_revision"
+      ? `The adjudication team requested changes to ${idea.referenceNo}. Review the feedback and submit a new version.`
+      : `A decision has been recorded for submission ${idea.referenceNo}.`,
+  };
 
   await db.transaction(async (tx) => {
     await tx.insert(adjudications).values({
@@ -74,15 +83,7 @@ export async function decideSubmission(formData: FormData) {
       actorId: adjudicator.id,
       note: rationale,
     });
-    await insertInAppNotifications(tx, [{
-      userId: idea.submitterId,
-      ideaId: idea.id,
-      type: decisionValue === "needs_revision" ? "changes_requested" : "decision_recorded",
-      title: decisionValue === "needs_revision" ? "Changes requested" : `Decision: ${decisionValue}`,
-      body: decisionValue === "needs_revision"
-        ? `The adjudication team requested changes to ${idea.referenceNo}. Review the feedback and submit a new version.`
-        : `A decision has been recorded for submission ${idea.referenceNo}.`,
-    }]);
+    await insertInAppNotifications(tx, [notificationEvent]);
     await notifyIdeaFollowers(tx, {
       ideaId: idea.id,
       actorId: adjudicator.id,
@@ -99,6 +100,7 @@ export async function decideSubmission(formData: FormData) {
       metadata: { decision: decisionValue, versionId: idea.currentVersionId, targetStageId: nextStageId },
     });
   });
+  await dispatchNotificationEmails([notificationEvent]);
 
   revalidatePath("/adjudicator");
   revalidatePath("/dashboard");

@@ -1,18 +1,58 @@
 "use server";
 
-import { and, asc, eq, gt, ne } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNotNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { evaluationScores, evaluations, evaluatorAssignments, feedback, ideaStageHistory, ideas, workflowStages } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
 import { getEvaluatorAssignment } from "@/lib/server/evaluator-workspace";
 import { writeAudit } from "@/lib/server/audit";
 import { notifyIdeaFollowers } from "@/lib/server/idea-alerts";
-import { insertInAppNotifications } from "@/lib/server/notifications";
+import { dispatchNotificationEmails, getUsersWithRole, insertInAppNotifications } from "@/lib/server/notifications";
 
 export type EvaluationState = { error?: string; totalScore?: string };
 export type InternalNoteState = { error?: string; success?: string };
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+
+export async function claimEvaluation(formData: FormData) {
+  const evaluator = await requireRole("evaluator", "/evaluator");
+  const ideaId = String(formData.get("ideaId") ?? "");
+  if (!uuidPattern.test(ideaId)) redirect("/evaluator?error=unavailable");
+  const assignmentId = await db.transaction(async (tx) => {
+    const [idea] = await tx.select({ id: ideas.id, submitterId: ideas.submitterId, currentStageId: ideas.currentStageId, currentVersionId: ideas.currentVersionId, status: ideas.status, referenceNo: ideas.referenceNo })
+      .from(ideas).where(eq(ideas.id, ideaId)).for("update").limit(1);
+    if (!idea || idea.submitterId === evaluator.id || !idea.currentStageId || !idea.currentVersionId || !["submitted", "in_review"].includes(idea.status)) return null;
+    const [stage] = await tx.select({ id: workflowStages.id, type: workflowStages.type }).from(workflowStages).where(eq(workflowStages.id, idea.currentStageId!)).limit(1);
+    if (!stage || stage.type !== "evaluation") return null;
+    const [active] = await tx.select({ id: evaluatorAssignments.id }).from(evaluatorAssignments)
+      .where(and(eq(evaluatorAssignments.ideaId, idea.id), eq(evaluatorAssignments.stageId, stage.id), inArray(evaluatorAssignments.status, ["pending", "in_progress"]))).limit(1);
+    if (active) return null;
+    const [completed] = await tx.select({ id: evaluations.id }).from(evaluations)
+      .innerJoin(evaluatorAssignments, eq(evaluations.assignmentId, evaluatorAssignments.id))
+      .where(and(eq(evaluatorAssignments.ideaId, idea.id), eq(evaluatorAssignments.stageId, stage.id), eq(evaluations.ideaVersionId, idea.currentVersionId), isNotNull(evaluations.submittedAt))).limit(1);
+    if (completed) return null;
+    const [existing] = await tx.select({ id: evaluatorAssignments.id }).from(evaluatorAssignments)
+      .where(and(eq(evaluatorAssignments.ideaId, idea.id), eq(evaluatorAssignments.stageId, stage.id), eq(evaluatorAssignments.evaluatorId, evaluator.id))).limit(1);
+    let id = existing?.id;
+    if (id) await tx.update(evaluatorAssignments).set({ status: "in_progress", assignedBy: null }).where(eq(evaluatorAssignments.id, id));
+    else {
+      const [created] = await tx.insert(evaluatorAssignments).values({ ideaId: idea.id, stageId: stage.id, evaluatorId: evaluator.id, status: "in_progress" }).returning({ id: evaluatorAssignments.id });
+      id = created?.id;
+    }
+    if (!id) return null;
+    await tx.update(ideas).set({ status: "in_review" }).where(eq(ideas.id, idea.id));
+    await tx.insert(ideaStageHistory).values({ ideaId: idea.id, fromStageId: stage.id, toStageId: stage.id, toStatus: "in_review", actorId: evaluator.id, note: "An evaluator claimed this submission for review." });
+    await writeAudit(tx, { actorId: evaluator.id, action: "evaluation.claimed", entityType: "idea", entityId: idea.id, metadata: { stageId: stage.id, referenceNo: idea.referenceNo } });
+    const event = { userId: idea.submitterId, ideaId: idea.id, type: "evaluation_started", title: "Your submission is being reviewed", body: `An evaluator has claimed submission ${idea.referenceNo}.` };
+    await insertInAppNotifications(tx, [event]);
+    return { id, event };
+  });
+  if (!assignmentId) redirect("/evaluator?error=claimed");
+  await dispatchNotificationEmails([assignmentId.event]);
+  revalidatePath("/evaluator");
+  redirect(`/evaluator/assignments/${assignmentId.id}`);
+}
 
 export async function addEvaluatorInternalNote(_previous: InternalNoteState, formData: FormData): Promise<InternalNoteState> {
   const evaluator = await requireRole("evaluator", "/evaluator");
@@ -87,6 +127,7 @@ export async function submitEvaluation(_previous: EvaluationState, formData: For
   const totalScore = totalWeight ? (weightedTotal / totalWeight) * 100 : 0;
   const now = new Date();
   const { assignment } = result;
+  const emailEvents: { userId: string; ideaId: string; type: string; title: string; body: string }[] = [];
 
   await db.transaction(async (tx) => {
     const [savedEvaluation] = await tx.insert(evaluations).values({
@@ -111,7 +152,7 @@ export async function submitEvaluation(_previous: EvaluationState, formData: For
       const [currentStage] = await tx.select({ position: workflowStages.position }).from(workflowStages)
         .where(eq(workflowStages.id, assignment.stageId)).limit(1);
       if (currentStage) {
-        const [nextStage] = await tx.select({ id: workflowStages.id, name: workflowStages.name }).from(workflowStages)
+        const [nextStage] = await tx.select({ id: workflowStages.id, name: workflowStages.name, type: workflowStages.type }).from(workflowStages)
           .where(and(eq(workflowStages.callId, idea.callId), gt(workflowStages.position, currentStage.position)))
           .orderBy(asc(workflowStages.position)).limit(1);
         if (nextStage) {
@@ -124,13 +165,22 @@ export async function submitEvaluation(_previous: EvaluationState, formData: For
             actorId: evaluator.id,
             note: `Evaluation completed. Moved to ${nextStage.name}.`,
           });
-          await insertInAppNotifications(tx, [{
+          const stageEvent = {
             userId: idea.submitterId,
             ideaId: idea.id,
             type: "status_changed",
             title: "Review stage completed",
             body: `Your submission ${assignment.referenceNo} has moved to ${nextStage.name}.`,
-          }]);
+          };
+          emailEvents.push(stageEvent);
+          await insertInAppNotifications(tx, [stageEvent]);
+          const nextRole = nextStage.type === "evaluation" ? "evaluator" : nextStage.type === "adjudication" ? "adjudicator" : null;
+          if (nextRole) {
+            const staff = await getUsersWithRole(tx, nextRole);
+            const queueEvents = staff.filter(({ id }) => id !== idea.submitterId).map(({ id }) => ({ userId: id, ideaId: idea.id, type: nextRole === "evaluator" ? "evaluation_available" : "adjudication_available", title: nextRole === "evaluator" ? "Submission available to review" : "Submission ready for adjudication", body: `Submission ${assignment.referenceNo} has reached ${nextStage.name}.` }));
+            emailEvents.push(...queueEvents);
+            await insertInAppNotifications(tx, queueEvents);
+          }
           await notifyIdeaFollowers(tx, {
             ideaId: idea.id,
             actorId: evaluator.id,
@@ -143,13 +193,15 @@ export async function submitEvaluation(_previous: EvaluationState, formData: For
       }
     }
 
-    await insertInAppNotifications(tx, [{
+    const completedEvent = {
       userId: idea.submitterId,
       ideaId: idea.id,
       type: "evaluation_completed",
       title: "An evaluator completed a review",
       body: `A review has been completed for submission ${assignment.referenceNo}.`,
-    }]);
+    };
+    emailEvents.push(completedEvent);
+    await insertInAppNotifications(tx, [completedEvent]);
     await writeAudit(tx, {
       actorId: evaluator.id,
       action: "evaluation.submitted",
@@ -158,6 +210,7 @@ export async function submitEvaluation(_previous: EvaluationState, formData: For
       metadata: { ideaId: idea.id, versionId: assignment.currentVersionId, stageId: assignment.stageId, scoreCount: scores.length, totalScore: totalScore.toFixed(2) },
     });
   });
+  await dispatchNotificationEmails(emailEvents);
 
   revalidatePath("/evaluator");
   revalidatePath("/dashboard");
