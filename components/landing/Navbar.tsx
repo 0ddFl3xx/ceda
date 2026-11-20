@@ -134,7 +134,7 @@ export function Navbar() {
 
           <ul
             id="primary-navigation-links"
-            className={wide ? "flex items-center gap-1" : `${mobileMenuOpen ? "fixed right-3 top-[68px] z-50 grid w-[min(22rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-6rem)] gap-1 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-3 shadow-xl sm:right-6 sm:top-[76px]" : "hidden"}`}
+            className={wide ? "flex items-center gap-1" : `${mobileMenuOpen ? "fixed inset-x-3 top-[68px] z-50 grid max-h-[calc(100dvh-6rem)] gap-1 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-3 shadow-xl sm:inset-x-6 sm:top-[76px] md:inset-x-8" : "hidden"}`}
           >
             {links.map((item) => {
               const closeMenu = () => setMobileMenuOpen(false);
