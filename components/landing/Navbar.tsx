@@ -134,7 +134,7 @@ export function Navbar() {
 
           <ul
             id="primary-navigation-links"
-            className={wide ? "flex items-center gap-1" : `${mobileMenuOpen ? "fixed inset-x-3 top-[68px] z-50 grid max-h-[calc(100dvh-6rem)] gap-1 overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-3 shadow-xl sm:inset-x-auto sm:right-6 sm:top-[76px] sm:w-[min(90vw,22rem)]" : "hidden"}`}
+            className={wide ? "flex items-center gap-1" : `${mobileMenuOpen ? "fixed right-3 top-[68px] z-50 grid w-[min(22rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-6rem)] gap-1 overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-3 shadow-xl sm:right-6 sm:top-[76px]" : "hidden"}`}
           >
             {links.map((item) => {
               const closeMenu = () => setMobileMenuOpen(false);
@@ -150,7 +150,7 @@ export function Navbar() {
             {!session?.user && !wide && <li className="mt-2 border-t border-slate-100 pt-2">
               <>
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm text-slate-700 hover:bg-surface-muted">Sign In</Link>
-                <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="mt-1 flex min-h-11 items-center justify-center rounded-full bg-ceda-burgundy px-5 text-sm font-semibold text-white hover:bg-[#60170E] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-burgundy">Register</Link>
+                <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="mt-1 flex min-h-11 w-full min-w-0 items-center justify-center rounded-full bg-ceda-burgundy px-5 text-sm font-semibold text-white hover:bg-[#60170E] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-burgundy">Register</Link>
               </>
             </li>}
             {session?.user && !wide && <li className="mt-2 border-t border-slate-100 pt-2">
