@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GlobalSupportActions } from "@/components/GlobalSupportActions";
+import { Providers } from "@/components/Providers";
 import { Footer } from "@/components/landing/Footer";
 import { Navbar } from "@/components/landing/Navbar";
 
@@ -28,16 +29,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-screen flex-col bg-white text-ceda-body">
-        <a
-          href="#main-content"
-          className="sr-only z-50 rounded-md bg-white px-4 py-3 text-ceda-burgundy focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:outline-2 focus:outline-ceda-burgundy"
-        >
-          Skip to main content
-        </a>
-        <Navbar />
-        <div className="flex flex-1 flex-col">{children}</div>
-        <Footer />
-        <GlobalSupportActions />
+        <Providers>
+          <a
+            href="#main-content"
+            className="sr-only z-50 rounded-md bg-white px-4 py-3 text-ceda-burgundy focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:outline-2 focus:outline-ceda-burgundy"
+          >
+            Skip to main content
+          </a>
+          <Navbar />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <Footer />
+          <GlobalSupportActions />
+        </Providers>
       </body>
     </html>
   );
