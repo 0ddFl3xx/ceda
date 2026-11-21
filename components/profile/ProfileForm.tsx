@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { updateProfile, type ProfileState } from "@/app/profile/actions";
+import { updateProfile, type ProfileState } from "@/app/(account)/profile/actions";
 
 const initialState: ProfileState = {};
 const fieldClass = "mt-2 block min-h-12 w-full rounded-xl border border-[#9A8175] bg-white px-3.5 py-3 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";

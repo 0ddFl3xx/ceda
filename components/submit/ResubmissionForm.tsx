@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { resubmitIdeaAction } from "@/app/dashboard/submissions/actions";
-import type { SubmissionState } from "@/app/submit/actions";
+import { resubmitIdeaAction } from "@/app/(dashboards)/dashboard/submissions/actions";
+import type { SubmissionState } from "@/app/(submissions)/submit/actions";
 
 type Field = {
   key: string;

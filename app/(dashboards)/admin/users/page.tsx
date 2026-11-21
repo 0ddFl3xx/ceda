@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { db } from "@/db";
 import { roles, user, userRoles } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
-import { assignRole } from "@/app/admin/users/actions";
+import { assignRole } from "@/app/(dashboards)/admin/users/actions";
 import { PageStub } from "@/components/PageStub";
 
 export default function AdminUsersPage({ searchParams }: PageProps<"/admin/users">) {

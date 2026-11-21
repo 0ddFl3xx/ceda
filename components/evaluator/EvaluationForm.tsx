@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { addEvaluatorInternalNote, submitEvaluation, type EvaluationState, type InternalNoteState } from "@/app/evaluator/assignments/actions";
+import { addEvaluatorInternalNote, submitEvaluation, type EvaluationState, type InternalNoteState } from "@/app/(dashboards)/evaluator/assignments/actions";
 
 type Criterion = { id: string; name: string; description: string | null; maxScore: number; weight: string };
 type SubmissionField = { key: string; label: string; helpText: string | null; sectionKey: string; position: number };

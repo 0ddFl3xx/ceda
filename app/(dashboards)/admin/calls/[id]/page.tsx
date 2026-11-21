@@ -5,7 +5,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { criteria, evaluationScores, formFields, innovationCalls, workflowStages } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
-import { addEvaluationCriterion, addFormField, addWorkflowStage, moveWorkflowStage, setEvaluationCriterionArchived, setFormFieldActive, updateCallStatus, updateEvaluationCriterion, updateWorkflowStage } from "@/app/admin/calls/actions";
+import { addEvaluationCriterion, addFormField, addWorkflowStage, moveWorkflowStage, setEvaluationCriterionArchived, setFormFieldActive, updateCallStatus, updateEvaluationCriterion, updateWorkflowStage } from "@/app/(dashboards)/admin/calls/actions";
 import { PageStub } from "@/components/PageStub";
 
 const fieldClass = "mt-1 block min-h-11 w-full rounded-xl border border-[#9A8175] bg-white px-3.5 py-2.5 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";

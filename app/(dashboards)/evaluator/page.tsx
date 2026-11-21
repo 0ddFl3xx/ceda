@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { PageStub } from "@/components/PageStub";
 import { requireRole } from "@/lib/authorization";
 import { getAvailableEvaluatorIdeas, getEvaluatorAssignments } from "@/lib/server/evaluator-workspace";
-import { claimEvaluation } from "@/app/evaluator/assignments/actions";
+import { claimEvaluation } from "@/app/(dashboards)/evaluator/assignments/actions";
 
 export default function EvaluatorPage() {
   return <Suspense fallback={<PageStub title="Evaluator Workspace" description="Loading the evaluation queue…" />}><EvaluatorContent /></Suspense>;

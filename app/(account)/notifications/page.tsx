@@ -4,7 +4,7 @@ import { PageStub } from "@/components/PageStub";
 import { db } from "@/db";
 import { notifications } from "@/db/schema";
 import { requireUser } from "@/lib/authorization";
-import { markAllNotificationsRead } from "@/app/notifications/actions";
+import { markAllNotificationsRead } from "@/app/(account)/notifications/actions";
 
 export default function NotificationsPage() {
   return <Suspense fallback={<PageStub title="Notifications" description="Loading your notifications…" />}><NotificationsContent /></Suspense>;

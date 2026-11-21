@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { faqs } from "@/db/schema";
 import { PageStub } from "@/components/PageStub";
 import { requireRole } from "@/lib/authorization";
-import { createFaq, deleteFaq, updateFaq } from "@/app/admin/content/faqs/actions";
+import { createFaq, deleteFaq, updateFaq } from "@/app/(dashboards)/admin/content/faqs/actions";
 
 const controlClass = "mt-1 min-h-12 w-full rounded-lg border border-[#9A8175] bg-white px-3 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";
 
