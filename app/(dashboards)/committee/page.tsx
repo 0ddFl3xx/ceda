@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageStub } from "@/components/PageStub";
 import { requireRole } from "@/lib/authorization";
 import { getCommitteeIdeas } from "@/lib/server/committee-workspace";
-import { toggleIdeaFollow } from "@/app/committee/actions";
+import { toggleIdeaFollow } from "@/app/(dashboards)/committee/actions";
 
 export default function CommitteePage({ searchParams }: PageProps<"/committee">) {
   return <Suspense fallback={<PageStub title="Committee Monitoring" description="Loading submission progress…" />}><CommitteeContent searchParams={searchParams} /></Suspense>;

@@ -10,7 +10,7 @@ import { writeAudit } from "@/lib/server/audit";
 import { notifyIdeaFollowers } from "@/lib/server/idea-alerts";
 import { dispatchNotificationEmails, getUsersWithRole, insertInAppNotifications } from "@/lib/server/notifications";
 import { validateDynamicAnswers } from "@/lib/server/submission-validation";
-import type { SubmissionState } from "@/app/submit/actions";
+import type { SubmissionState } from "@/app/(submissions)/submit/actions";
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 

@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { ideaVersions, ideas, innovationCalls } from "@/db/schema";
 import { PageStub } from "@/components/PageStub";
 import { requireRole } from "@/lib/authorization";
-import { grantAward } from "@/app/admin/awards/actions";
+import { grantAward } from "@/app/(dashboards)/admin/awards/actions";
 
 export default function AdminAwardsPage({ searchParams }: PageProps<"/admin/awards">) {
   return <Suspense fallback={<PageStub title="Award recognition" description="Loading approved submissions…" />}><AwardsContent searchParams={searchParams} /></Suspense>;

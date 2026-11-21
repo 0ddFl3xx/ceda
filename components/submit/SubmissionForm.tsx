@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Check, ChevronLeft, ChevronRight, CircleCheck, FileText, Save } from "lucide-react";
-import { saveSubmissionDraft, submitIdeaAction, type SubmissionState } from "@/app/submit/actions";
+import { saveSubmissionDraft, submitIdeaAction, type SubmissionState } from "@/app/(submissions)/submit/actions";
 
 type Field = {
   key: string;

@@ -5,7 +5,7 @@ import { PasswordChangeForm } from "@/components/profile/PasswordChangeForm";
 import { notificationPreferences } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/authorization";
-import { saveNotificationPreferences } from "@/app/account/settings/actions";
+import { saveNotificationPreferences } from "@/app/(account)/account/settings/actions";
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 

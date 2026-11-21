@@ -5,7 +5,7 @@ import { PageStub } from "@/components/PageStub";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
-import { createCategory, setCategoryActive, updateCategory } from "@/app/admin/categories/actions";
+import { createCategory, setCategoryActive, updateCategory } from "@/app/(dashboards)/admin/categories/actions";
 
 const fieldClass = "mt-1 block min-h-12 w-full rounded-xl border border-[#9A8175] bg-white px-3.5 py-3 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";
 
