@@ -5,7 +5,7 @@ import { Navbar } from "@/components/landing/Navbar";
 
 export default function LandingPageLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="site-shell flex min-h-screen flex-col bg-white">
       <Navbar />
       <div className="flex flex-1 flex-col">{children}</div>
       <Footer />

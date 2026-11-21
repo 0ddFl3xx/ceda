@@ -12,20 +12,19 @@ import {
 } from "@/db/schema";
 import { requireRole } from "@/lib/authorization";
 import {
-  addEvaluationCriterion,
-  addFormField,
-  addWorkflowStage,
   moveWorkflowStage,
   setEvaluationCriterionArchived,
   setFormFieldActive,
   updateCallStatus,
-  updateEvaluationCriterion,
-  updateWorkflowStage,
 } from "@/app/(workspace)/(dashboards)/admin/calls/actions";
+import {
+  AddCallFormFieldForm,
+  AddCriterionForm,
+  AddWorkflowStageForm,
+  EditCriterionForm,
+  UpdateWorkflowStageForm,
+} from "@/components/admin/CallConfigForms";
 import { WorkspacePageSkeleton } from "@/components/workspace/WorkspacePageSkeleton";
-
-const fieldClass =
-  "mt-1 block min-h-11 w-full rounded-xl border border-[#9A8175] bg-white px-3.5 py-2.5 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";
 
 export default function CallConfigurationPage({
   params,
@@ -236,136 +235,7 @@ async function CallConfigurationContent({
                 No fields configured.
               </p>
             )}
-            <form
-              action={addFormField}
-              aria-labelledby="add-field-heading"
-              className="mt-6 space-y-4 rounded-2xl border border-ceda-line bg-[#FFF9F4] p-5 sm:p-6">
-              <input type="hidden" name="callId" value={call.id} />
-              <h3 id="add-field-heading" className="font-bold text-ceda-ink">
-                Add a form field
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="key"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Field key
-                  </label>
-                  <input
-                    id="key"
-                    name="key"
-                    required
-                    pattern="[a-z][a-z0-9_]{1,79}"
-                    maxLength={80}
-                    aria-describedby="key-help"
-                    className={fieldClass}
-                  />
-                  <p id="key-help" className="mt-1 text-xs text-ceda-muted">
-                    Lowercase letters, numbers, and underscores.
-                  </p>
-                </div>
-                <div>
-                  <label
-                    htmlFor="label"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Label
-                  </label>
-                  <input
-                    id="label"
-                    name="label"
-                    required
-                    minLength={2}
-                    maxLength={255}
-                    className={fieldClass}
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="helpText"
-                  className="text-sm font-semibold text-ceda-ink">
-                  Help text
-                </label>
-                <textarea
-                  id="helpText"
-                  name="helpText"
-                  maxLength={2000}
-                  rows={2}
-                  className={fieldClass}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="sectionKey"
-                  className="text-sm font-semibold text-ceda-ink">
-                  Application section
-                </label>
-                <select
-                  id="sectionKey"
-                  name="sectionKey"
-                  className={fieldClass}>
-                  <option value="general_information">
-                    General Information
-                  </option>
-                  <option value="solution_status">Solution Status</option>
-                  <option value="solution_overview">Solution Overview</option>
-                  <option value="type_of_innovation">Type of Innovation</option>
-                  <option value="additional_information">
-                    Additional Information
-                  </option>
-                  <option value="solution_documents">Solution Documents</option>
-                </select>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="type"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Field type
-                  </label>
-                  <select id="type" name="type" className={fieldClass}>
-                    <option value="text">Short text</option>
-                    <option value="textarea">Long text</option>
-                    <option value="url">Web address</option>
-                    <option value="number">Number</option>
-                    <option value="date">Date</option>
-                    <option value="select">Choose one</option>
-                    <option value="multiselect">Choose multiple</option>
-                    <option value="checkbox">Confirmation</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="options"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Choices (for select fields)
-                  </label>
-                  <input
-                    id="options"
-                    name="options"
-                    maxLength={2000}
-                    aria-describedby="options-help"
-                    className={fieldClass}
-                  />
-                  <p id="options-help" className="mt-1 text-xs text-ceda-muted">
-                    Separate choices with commas.
-                  </p>
-                </div>
-              </div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-ceda-ink">
-                <input
-                  type="checkbox"
-                  name="required"
-                  className="h-5 w-5 accent-ceda-burgundy"
-                />
-                Required answer
-              </label>
-              <button
-                type="submit"
-                className="min-h-11 rounded-full bg-ceda-burgundy px-5 text-sm font-bold text-white hover:bg-[#5C150D]">
-                Add field
-              </button>
-            </form>
+            <AddCallFormFieldForm callId={call.id} />
           </section>
           <aside className="space-y-6">
             <section
@@ -390,46 +260,12 @@ async function CallConfigurationContent({
                       Stage {index + 1} · {stage.type}
                       {stage.isTerminal ? " · final" : ""}
                     </p>
-                    <form
-                      action={updateWorkflowStage}
-                      aria-label={`Update ${stage.name}`}
-                      className="mt-2 space-y-2">
-                      <input type="hidden" name="callId" value={call.id} />
-                      <input type="hidden" name="stageId" value={stage.id} />
-                      <label
-                        htmlFor={`stage-name-${stage.id}`}
-                        className="sr-only">
-                        Stage name
-                      </label>
-                      <input
-                        id={`stage-name-${stage.id}`}
-                        name="name"
-                        required
-                        minLength={2}
-                        maxLength={150}
-                        defaultValue={stage.name}
-                        className={fieldClass}
-                      />
-                      <label
-                        htmlFor={`stage-description-${stage.id}`}
-                        className="sr-only">
-                        Stage description
-                      </label>
-                      <textarea
-                        id={`stage-description-${stage.id}`}
-                        name="description"
-                        maxLength={2000}
-                        rows={2}
-                        defaultValue={stage.description ?? ""}
-                        placeholder="Optional stage description"
-                        className={fieldClass}
-                      />
-                      <button
-                        type="submit"
-                        className="min-h-12 rounded-full border border-ceda-line px-4 text-xs font-bold text-ceda-burgundy">
-                        Save stage
-                      </button>
-                    </form>
+                    <UpdateWorkflowStageForm
+                      callId={call.id}
+                      stageId={stage.id}
+                      name={stage.name}
+                      description={stage.description ?? ""}
+                    />
                     <div className="mt-2 flex flex-wrap gap-2">
                       <form
                         action={moveWorkflowStage}
@@ -461,85 +297,7 @@ async function CallConfigurationContent({
                   </li>
                 ))}
               </ol>
-              <form
-                action={addWorkflowStage}
-                aria-labelledby="add-stage-heading"
-                className="mt-5 space-y-3 border-t border-ceda-line pt-5">
-                <input type="hidden" name="callId" value={call.id} />
-                <h3 id="add-stage-heading" className="font-bold text-ceda-ink">
-                  Add a workflow stage
-                </h3>
-                <div>
-                  <label
-                    htmlFor="stage-key"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Stage key
-                  </label>
-                  <input
-                    id="stage-key"
-                    name="key"
-                    required
-                    pattern="[a-z][a-z0-9_]{1,79}"
-                    maxLength={80}
-                    className={fieldClass}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="stage-name"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Stage name
-                  </label>
-                  <input
-                    id="stage-name"
-                    name="name"
-                    required
-                    minLength={2}
-                    maxLength={150}
-                    className={fieldClass}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="stage-type"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Stage type
-                  </label>
-                  <select
-                    id="stage-type"
-                    name="type"
-                    required
-                    defaultValue="evaluation"
-                    className={fieldClass}>
-                    <option value="intake">Intake</option>
-                    <option value="screening">Screening</option>
-                    <option value="evaluation">Evaluation</option>
-                    <option value="adjudication">Adjudication</option>
-                    <option value="feedback">Feedback</option>
-                    <option value="decision">Decision</option>
-                    <option value="award">Award</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="stage-new-description"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Description
-                  </label>
-                  <textarea
-                    id="stage-new-description"
-                    name="description"
-                    maxLength={2000}
-                    rows={2}
-                    className={fieldClass}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="min-h-12 rounded-full bg-ceda-burgundy px-5 text-sm font-bold text-white hover:bg-[#5C150D]">
-                  Add stage
-                </button>
-              </form>
+              <AddWorkflowStageForm callId={call.id} />
             </section>
             <section className="rounded-2xl border border-ceda-line bg-white p-5 sm:p-6">
               <h2 className="text-xl font-bold text-ceda-ink">
@@ -588,95 +346,14 @@ async function CallConfigurationContent({
                           <summary className="min-h-12 cursor-pointer py-3 text-sm font-semibold text-ceda-burgundy">
                             Edit {criterion.name}
                           </summary>
-                          <form
-                            action={updateEvaluationCriterion}
-                            aria-label={`Edit ${criterion.name}`}
-                            className="space-y-3">
-                            <input
-                              type="hidden"
-                              name="callId"
-                              value={call.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="criterionId"
-                              value={criterion.id}
-                            />
-                            <div>
-                              <label
-                                htmlFor={`criterion-edit-name-${criterion.id}`}
-                                className="text-sm font-semibold text-ceda-ink">
-                                Name
-                              </label>
-                              <input
-                                id={`criterion-edit-name-${criterion.id}`}
-                                name="name"
-                                required
-                                minLength={2}
-                                maxLength={150}
-                                defaultValue={criterion.name}
-                                className={fieldClass}
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor={`criterion-edit-description-${criterion.id}`}
-                                className="text-sm font-semibold text-ceda-ink">
-                                Description
-                              </label>
-                              <textarea
-                                id={`criterion-edit-description-${criterion.id}`}
-                                name="description"
-                                maxLength={2000}
-                                rows={2}
-                                defaultValue={criterion.description ?? ""}
-                                className={fieldClass}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label
-                                  htmlFor={`criterion-edit-max-${criterion.id}`}
-                                  className="text-xs font-semibold text-ceda-ink">
-                                  Maximum score
-                                </label>
-                                <input
-                                  id={`criterion-edit-max-${criterion.id}`}
-                                  name="maxScore"
-                                  type="number"
-                                  min="1"
-                                  max="1000"
-                                  step="1"
-                                  required
-                                  defaultValue={criterion.maxScore}
-                                  className={fieldClass}
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  htmlFor={`criterion-edit-weight-${criterion.id}`}
-                                  className="text-xs font-semibold text-ceda-ink">
-                                  Weight
-                                </label>
-                                <input
-                                  id={`criterion-edit-weight-${criterion.id}`}
-                                  name="weight"
-                                  type="number"
-                                  min="0.01"
-                                  max="100"
-                                  step="0.01"
-                                  required
-                                  defaultValue={criterion.weight}
-                                  className={fieldClass}
-                                />
-                              </div>
-                            </div>
-                            <button
-                              type="submit"
-                              className="min-h-12 rounded-full border border-ceda-line px-4 text-sm font-bold text-ceda-burgundy">
-                              Save criterion
-                            </button>
-                          </form>
+                          <EditCriterionForm
+                            callId={call.id}
+                            criterionId={criterion.id}
+                            name={criterion.name}
+                            description={criterion.description ?? ""}
+                            maxScore={criterion.maxScore}
+                            weight={criterion.weight}
+                          />
                         </details>
                       )}
                       <form
@@ -705,113 +382,12 @@ async function CallConfigurationContent({
                   );
                 })}
               </div>
-              <form
-                action={addEvaluationCriterion}
-                aria-labelledby="add-criterion-heading"
-                className="mt-5 space-y-3 border-t border-ceda-line pt-5">
-                <input type="hidden" name="callId" value={call.id} />
-                <h3
-                  id="add-criterion-heading"
-                  className="font-bold text-ceda-ink">
-                  Add a criterion
-                </h3>
-                <div>
-                  <label
-                    htmlFor="stageId"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Evaluation stage
-                  </label>
-                  <select
-                    id="stageId"
-                    name="stageId"
-                    required
-                    className={fieldClass}
-                    defaultValue="">
-                    <option value="" disabled>
-                      Select a stage
-                    </option>
-                    {stages
-                      .filter((stage) => stage.type === "evaluation")
-                      .map((stage) => (
-                        <option key={stage.id} value={stage.id}>
-                          {stage.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="criterionName"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Criterion
-                  </label>
-                  <input
-                    id="criterionName"
-                    name="name"
-                    required
-                    minLength={2}
-                    maxLength={150}
-                    className={fieldClass}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="criterionDescription"
-                    className="text-sm font-semibold text-ceda-ink">
-                    Description
-                  </label>
-                  <textarea
-                    id="criterionDescription"
-                    name="description"
-                    maxLength={2000}
-                    rows={2}
-                    className={fieldClass}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label
-                      htmlFor="maxScore"
-                      className="text-xs font-semibold text-ceda-ink">
-                      Maximum score
-                    </label>
-                    <input
-                      id="maxScore"
-                      name="maxScore"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      step="1"
-                      required
-                      defaultValue="10"
-                      className={fieldClass}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="weight"
-                      className="text-xs font-semibold text-ceda-ink">
-                      Weight
-                    </label>
-                    <input
-                      id="weight"
-                      name="weight"
-                      type="number"
-                      min="0.01"
-                      max="100"
-                      step="0.01"
-                      required
-                      defaultValue="1"
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  className="min-h-12 rounded-full bg-ceda-burgundy px-4 text-sm font-bold text-white hover:bg-[#5C150D]">
-                  Add criterion
-                </button>
-              </form>
+              <AddCriterionForm
+                callId={call.id}
+                evaluationStages={stages.filter(
+                  (stage) => stage.type === "evaluation",
+                )}
+              />
             </section>
             <section className="rounded-2xl bg-[#FFF9F4] p-5">
               <h2 className="font-bold text-ceda-ink">Call window</h2>

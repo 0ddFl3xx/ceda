@@ -4,8 +4,8 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ideaVersions, ideas, innovationCalls } from "@/db/schema";
 import { WorkspacePageSkeleton } from "@/components/workspace/WorkspacePageSkeleton";
+import { GrantAwardForm } from "@/components/admin/GrantAwardForm";
 import { requireRole } from "@/lib/authorization";
-import { grantAward } from "@/app/(workspace)/(dashboards)/admin/awards/actions";
 
 export default function AdminAwardsPage({
   searchParams,
@@ -91,67 +91,7 @@ async function AwardsContent({
                 <p className="mt-1 text-sm text-ceda-muted">
                   {idea.referenceNo} · {idea.callTitle}
                 </p>
-                <form
-                  action={grantAward}
-                  aria-labelledby={`award-${idea.id}`}
-                  className="mt-5 grid gap-4 border-t border-ceda-line pt-5 md:grid-cols-2">
-                  <input type="hidden" name="ideaId" value={idea.id} />
-                  <div>
-                    <label
-                      htmlFor={`award-title-${idea.id}`}
-                      className="block text-sm font-semibold text-ceda-ink">
-                      Award title <span aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      id={`award-title-${idea.id}`}
-                      name="title"
-                      required
-                      minLength={3}
-                      maxLength={255}
-                      className="mt-1 min-h-12 w-full rounded-lg border border-[#9A8175] px-3 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy"
-                      placeholder="e.g. CEDA Innovation Award"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor={`award-tier-${idea.id}`}
-                      className="block text-sm font-semibold text-ceda-ink">
-                      Tier{" "}
-                      <span className="font-normal text-ceda-muted">
-                        (optional)
-                      </span>
-                    </label>
-                    <input
-                      id={`award-tier-${idea.id}`}
-                      name="tier"
-                      maxLength={50}
-                      className="mt-1 min-h-12 w-full rounded-lg border border-[#9A8175] px-3 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy"
-                      placeholder="e.g. Gold"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label
-                      htmlFor={`award-description-${idea.id}`}
-                      className="block text-sm font-semibold text-ceda-ink">
-                      Recognition details{" "}
-                      <span className="font-normal text-ceda-muted">
-                        (optional)
-                      </span>
-                    </label>
-                    <textarea
-                      id={`award-description-${idea.id}`}
-                      name="description"
-                      rows={3}
-                      maxLength={2000}
-                      className="mt-1 w-full rounded-lg border border-[#9A8175] px-3 py-2 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="min-h-12 w-fit rounded-full bg-ceda-burgundy px-5 text-sm font-bold text-white hover:bg-[#5C150D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-burgundy">
-                    Grant award
-                  </button>
-                </form>
+                <GrantAwardForm ideaId={idea.id} />
               </article>
             ))}
           </div>

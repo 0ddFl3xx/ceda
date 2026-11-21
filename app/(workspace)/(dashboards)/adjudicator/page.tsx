@@ -6,12 +6,9 @@ import {
   getAttachmentDownloadPath,
   getAttachmentTypeLabel,
 } from "@/lib/attachments";
+import { AdjudicationDecisionForm } from "@/components/adjudicator/AdjudicationDecisionForm";
 import { requireRole } from "@/lib/authorization";
 import { getAdjudicationQueue } from "@/lib/server/adjudicator-workspace";
-import { decideSubmission } from "@/app/(workspace)/(dashboards)/adjudicator/actions";
-
-const inputClass =
-  "mt-1 block min-h-11 w-full rounded-xl border border-[#9A8175] bg-white px-3.5 py-2.5 text-base text-ceda-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ceda-burgundy";
 
 export default function AdjudicatorPage({
   searchParams,
@@ -169,54 +166,7 @@ async function AdjudicationContent({
                     </div>
                   ))}
                 </dl>
-                <form
-                  action={decideSubmission}
-                  aria-labelledby={`adjudication-${idea.id}`}
-                  className="mt-6 grid gap-4 border-t border-ceda-line pt-5 sm:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)_auto] sm:items-end">
-                  <input type="hidden" name="ideaId" value={idea.id} />
-                  <div>
-                    <label
-                      htmlFor={`decision-${idea.id}`}
-                      className="text-sm font-semibold text-ceda-ink">
-                      Decision
-                    </label>
-                    <select
-                      id={`decision-${idea.id}`}
-                      name="decision"
-                      required
-                      defaultValue=""
-                      className={inputClass}>
-                      <option value="" disabled>
-                        Choose decision
-                      </option>
-                      <option value="approved">Approve</option>
-                      <option value="needs_revision">Request changes</option>
-                      <option value="rejected">Reject</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor={`rationale-${idea.id}`}
-                      className="text-sm font-semibold text-ceda-ink">
-                      Rationale{" "}
-                      <span className="text-ceda-muted">(required)</span>
-                    </label>
-                    <textarea
-                      id={`rationale-${idea.id}`}
-                      name="rationale"
-                      required
-                      minLength={20}
-                      maxLength={5000}
-                      rows={2}
-                      className={inputClass}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="min-h-11 rounded-full bg-ceda-burgundy px-5 text-sm font-bold text-white hover:bg-[#5C150D]">
-                    Record decision
-                  </button>
-                </form>
+                <AdjudicationDecisionForm ideaId={idea.id} />
               </article>
             ))}
           </div>

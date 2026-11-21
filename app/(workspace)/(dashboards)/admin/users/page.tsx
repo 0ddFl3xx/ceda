@@ -3,8 +3,8 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { Suspense } from "react";
 import { db } from "@/db";
 import { roles, user, userRoles } from "@/db/schema";
+import { AssignRoleForm } from "@/components/admin/AssignRoleForm";
 import { requireRole } from "@/lib/authorization";
-import { assignRole } from "@/app/(workspace)/(dashboards)/admin/users/actions";
 import { WorkspacePageSkeleton } from "@/components/workspace/WorkspacePageSkeleton";
 
 export default function AdminUsersPage({
@@ -145,39 +145,10 @@ async function AdminUsersContent({
                     </div>
                   </div>
                   {available.length > 0 && (
-                    <form
-                      action={assignRole}
-                      aria-labelledby={`user-title-${account.id}`}
-                      className="flex items-end gap-2">
-                      <input type="hidden" name="userId" value={account.id} />
-                      <div>
-                        <label
-                          htmlFor={`role-${account.id}`}
-                          className="text-xs font-semibold text-ceda-ink">
-                          Assign role
-                        </label>
-                        <select
-                          id={`role-${account.id}`}
-                          name="roleId"
-                          required
-                          defaultValue=""
-                          className="mt-1 min-h-10 rounded-lg border border-[#9A8175] bg-white px-3 text-sm text-ceda-ink">
-                          <option value="" disabled>
-                            Choose a role
-                          </option>
-                          {available.map((role) => (
-                            <option key={role.id} value={role.id}>
-                              {role.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        type="submit"
-                        className="min-h-10 rounded-full bg-ceda-burgundy px-4 text-sm font-bold text-white hover:bg-[#5C150D]">
-                        Assign
-                      </button>
-                    </form>
+                    <AssignRoleForm
+                      userId={account.id}
+                      availableRoles={available}
+                    />
                   )}
                 </div>
               </article>
