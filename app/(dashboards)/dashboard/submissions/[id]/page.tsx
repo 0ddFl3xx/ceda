@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { Download, FileText } from "lucide-react";
 import { PageStub } from "@/components/PageStub";
 import { ResubmissionForm } from "@/components/submit/ResubmissionForm";
+import { formatFileSize, getAttachmentDownloadPath, getAttachmentTypeLabel } from "@/lib/attachments";
 import { requireRole } from "@/lib/authorization";
+import { getVersionAttachments } from "@/lib/server/attachments";
 import { getActiveCategories, getPublicIdeaFeedback, getSubmissionFields, getSubmitterAwards, getSubmitterEvaluationFeedback, getSubmitterIdea, getSubmitterStageHistory } from "@/lib/server/idea-submission";
 
 function AnswerContent({ value }: { value: unknown }) {
@@ -31,11 +34,12 @@ async function SubmissionDetail({ params }: { params: Promise<{ id: string }> })
   const idea = await getSubmitterIdea(id, user.id);
   if (!idea) notFound();
 
-  const [history, publicFeedback, evaluationFeedback, userAwards, fields, categories] = await Promise.all([
+  const [history, publicFeedback, evaluationFeedback, userAwards, versionAttachments, fields, categories] = await Promise.all([
     getSubmitterStageHistory(id, user.id),
     getPublicIdeaFeedback(id, user.id),
     getSubmitterEvaluationFeedback(id, user.id),
     getSubmitterAwards(id, user.id),
+    getVersionAttachments(idea.currentVersionId),
     idea.status === "changes_requested" ? getSubmissionFields(idea.callId) : Promise.resolve([]),
     idea.status === "changes_requested" ? getActiveCategories() : Promise.resolve([]),
   ]);
@@ -47,13 +51,27 @@ async function SubmissionDetail({ params }: { params: Promise<{ id: string }> })
         <header className="mt-6 rounded-2xl bg-[#5C150D] p-6 text-white sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4B58A]">{idea.referenceNo}</p>
           <h1 className="mt-3 text-3xl font-bold">{idea.title ?? "Untitled idea"}</h1>
-          <p className="mt-3 text-sm text-white/80">{idea.callTitle}</p>
+          <p className="mt-3 text-sm text-white/80">{idea.callTitle}{idea.versionNo ? ` · Version ${idea.versionNo}` : ""}</p>
           <span className="mt-5 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold capitalize">{idea.status.replaceAll("_", " ")}</span>
         </header>
         <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="summary-heading">
           <h2 id="summary-heading" className="text-xl font-bold text-ceda-ink">Idea summary</h2>
           <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-ceda-body">{idea.summary}</p>
         </section>
+        {versionAttachments.length > 0 && <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="documents-heading">
+          <h2 id="documents-heading" className="text-xl font-bold text-ceda-ink">Supporting documents</h2>
+          <p className="mt-1 text-sm text-ceda-muted">Files attached to the current version. Downloads use short-lived private links.</p>
+          <ul className="mt-4 space-y-2.5">{versionAttachments.map((file) => <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ceda-line bg-[#FFFDFC] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <FileText aria-hidden="true" className="h-5 w-5 shrink-0 text-ceda-burgundy" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-ceda-ink">{file.fileName}</p>
+                <p className="text-xs text-ceda-muted">{getAttachmentTypeLabel(file.mimeType, file.fileName)} · {formatFileSize(file.fileSize)}</p>
+              </div>
+            </div>
+            <a href={getAttachmentDownloadPath(file.id)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-ceda-line bg-white px-4 text-xs font-semibold text-ceda-burgundy hover:bg-[#FFF9F4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-burgundy"><Download aria-hidden="true" className="h-3.5 w-3.5" />Download</a>
+          </li>)}</ul>
+        </section>}
         {userAwards.length > 0 && <section className="mt-6 rounded-2xl border border-[#E8B36D] bg-[#FFF9F0] p-6 sm:p-8" aria-labelledby="awards-heading"><h2 id="awards-heading" className="text-xl font-bold text-ceda-ink">Recognition</h2><ul className="mt-4 space-y-4">{userAwards.map((award, index) => <li key={`${award.title}-${index}`}><p className="font-semibold text-ceda-burgundy">{award.title}{award.tier ? ` · ${award.tier}` : ""}</p>{award.description && <p className="mt-1 text-sm leading-6 text-ceda-body">{award.description}</p>}<p className="mt-2 text-xs text-ceda-muted">Awarded {award.awardedAt.toLocaleDateString("en-BW", { dateStyle: "long", timeZone: "Africa/Gaborone" })}</p></li>)}</ul></section>}
         {answers.length > 0 && <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="details-heading">
           <h2 id="details-heading" className="text-xl font-bold text-ceda-ink">Additional information</h2>
@@ -71,7 +89,7 @@ async function SubmissionDetail({ params }: { params: Promise<{ id: string }> })
           </article>)}</div>
         </section>}
         {publicFeedback.length > 0 && <section className="mt-6 rounded-2xl border border-ceda-line bg-white p-6 sm:p-8" aria-labelledby="feedback-heading"><h2 id="feedback-heading" className="text-xl font-bold text-ceda-ink">Feedback and replies</h2><div className="mt-4 space-y-3">{publicFeedback.map((item) => <article key={item.id} className={`rounded-xl bg-[#FFF9F4] p-4 ${item.parentId ? "ml-5 border-l-2 border-ceda-orange sm:ml-10" : ""}`}><p className="text-xs font-semibold text-ceda-burgundy">{item.authorName} · {item.createdAt.toLocaleDateString("en-BW", { dateStyle: "medium", timeZone: "Africa/Gaborone" })}</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ceda-body">{item.body}</p></article>)}</div></section>}
-        {idea.status === "changes_requested" && <div className="mt-6"><ResubmissionForm ideaId={idea.id} title={idea.title ?? ""} summary={idea.summary ?? ""} answers={idea.answers ?? {}} categoryId={idea.categoryId} fields={fields} categories={categories} /></div>}
+        {idea.status === "changes_requested" && <div className="mt-6"><ResubmissionForm ideaId={idea.id} title={idea.title ?? ""} summary={idea.summary ?? ""} answers={idea.answers ?? {}} categoryId={idea.categoryId} fields={fields} categories={categories} existingAttachments={versionAttachments} /></div>}
         <p className="mt-5 text-xs text-ceda-muted">Submitted {idea.submittedAt ? idea.submittedAt.toLocaleDateString("en-BW", { dateStyle: "long", timeZone: "Africa/Gaborone" }) : "—"}</p>
       </div>
     </main>

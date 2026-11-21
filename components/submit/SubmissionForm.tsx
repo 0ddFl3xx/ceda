@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Check, ChevronLeft, ChevronRight, CircleCheck, FileText, Save } from "lucide-react";
 import { saveSubmissionDraft, submitIdeaAction, type SubmissionState } from "@/app/(submissions)/submit/actions";
+import { AttachmentUploader } from "@/components/submit/AttachmentUploader";
+import type { AttachmentSummary } from "@/lib/attachments";
 
 type Field = {
   key: string;
@@ -22,6 +24,7 @@ type Props = {
   fields: Field[];
   categories: { id: string; name: string; description: string | null }[];
   initialDraft: Draft;
+  initialAttachments: AttachmentSummary[];
 };
 
 const sections = [
@@ -31,7 +34,7 @@ const sections = [
   { key: "solution_overview", label: "Solution Overview", description: "Explain the problem and your proposed solution." },
   { key: "type_of_innovation", label: "Type of Innovation", description: "Select the kind of innovation you are proposing." },
   { key: "additional_information", label: "Additional Information", description: "Add the remaining details requested for this opportunity." },
-  { key: "solution_documents", label: "Solution Documents", description: "Add links to supporting documents and prototypes." },
+  { key: "solution_documents", label: "Solution Documents", description: "Upload pitch decks and supporting documents, or add prototype links." },
 ];
 const solutionStages = ["Idea or concept", "Prototype in development", "Pilot or testing", "Ready to launch", "Already operating"];
 const innovationTypes = ["Product", "Service", "Process", "Technology", "Business model", "Social innovation"];
@@ -71,12 +74,13 @@ function FieldControl({ field, value, active, error }: { field: Field; value: un
   </div>;
 }
 
-export function SubmissionForm({ call, fields, categories, initialDraft }: Props) {
+export function SubmissionForm({ call, fields, categories, initialDraft, initialAttachments }: Props) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [active, setActive] = useState(0);
   const [draftId, setDraftId] = useState(initialDraft?.id ?? "");
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
   const [savedMessage, setSavedMessage] = useState("");
   const [state, setState] = useState<SubmissionState>({});
   const [pending, startTransition] = useTransition();
@@ -99,19 +103,28 @@ export function SubmissionForm({ call, fields, categories, initialDraft }: Props
     return null;
   }
 
-  async function saveDraft() {
-    if (!formRef.current) return false;
+  async function saveDraftAndGetId(): Promise<string | null> {
+    if (!formRef.current) return null;
     setSavedMessage("Saving your application…");
     const result = await saveSubmissionDraft(new FormData(formRef.current));
     if (result.error || !result.draftId) {
       setSavedMessage("");
       setState(result);
-      return false;
+      return null;
     }
     setDraftId(result.draftId);
     setState({});
     setSavedMessage("Draft saved");
-    return true;
+    return result.draftId;
+  }
+
+  async function saveDraft() {
+    return Boolean(await saveDraftAndGetId());
+  }
+
+  async function ensureDraftId(): Promise<string | null> {
+    if (draftId) return draftId;
+    return saveDraftAndGetId();
   }
 
   async function continueToNext() {
@@ -208,20 +221,26 @@ export function SubmissionForm({ call, fields, categories, initialDraft }: Props
             {index === 5 && fields.every((field) => field.sectionKey !== "additional_information") && <p className="rounded-xl bg-[#FFF9F4] p-4 text-sm leading-6 text-ceda-muted">No additional details are required for this opportunity.</p>}
 
             {index === 6 && <>
-              <div className="rounded-xl bg-[#FFF9F4] p-4 text-sm leading-6 text-ceda-body"><FileText aria-hidden="true" className="mb-2 h-5 w-5 text-ceda-burgundy" /><strong className="text-ceda-ink">Supporting material</strong><p className="mt-1">Add secure links to a pitch deck, prototype, research, or other supporting material. Do not include confidential personal information in public links.</p></div>
+              <div className="rounded-xl bg-[#FFF9F4] p-4 text-sm leading-6 text-ceda-body"><FileText aria-hidden="true" className="mb-2 h-5 w-5 text-ceda-burgundy" /><strong className="text-ceda-ink">Supporting material</strong><p className="mt-1">Upload pitch decks, technical proposals, financials, or prototypes directly below, and add any requested external links. Uploaded files are stored privately and shared only with authorized CEDA reviewers.</p></div>
+              <AttachmentUploader
+                mode="draft"
+                ideaId={draftId}
+                ensureDraftId={ensureDraftId}
+                initialAttachments={initialAttachments}
+                onUploadingChange={setUploadingAttachments}
+              />
               {fields.filter((field) => field.sectionKey === "solution_documents").map((field) => <FieldControl key={field.key} field={field} value={answerValues[field.key]} active={active === index} error={state.fieldErrors?.[field.key]} />)}
-              {fields.every((field) => field.sectionKey !== "solution_documents") && <p className="rounded-xl border border-dashed border-ceda-line p-5 text-sm leading-6 text-ceda-muted">No supporting document links are configured for this opportunity. An administrator can add document link fields in the opportunity form settings.</p>}
             </>}
           </div>
         </section>)}
 
         <footer className="flex flex-col gap-3 border-t border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:px-10">
-          <button type="button" onClick={() => goToSection(Math.max(0, active - 1))} disabled={active === 0 || pending} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-ceda-line px-5 text-sm font-semibold text-ceda-body hover:bg-[#FFF9F4] disabled:cursor-not-allowed disabled:opacity-50"><ChevronLeft aria-hidden="true" className="h-4 w-4" />Back</button>
+          <button type="button" onClick={() => goToSection(Math.max(0, active - 1))} disabled={active === 0 || pending || uploadingAttachments} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-ceda-line px-5 text-sm font-semibold text-ceda-body hover:bg-[#FFF9F4] disabled:cursor-not-allowed disabled:opacity-50"><ChevronLeft aria-hidden="true" className="h-4 w-4" />Back</button>
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:justify-end">
-            <button type="button" onClick={saveAndExit} disabled={pending} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold text-ceda-muted hover:bg-surface-muted disabled:opacity-50"><Save aria-hidden="true" className="h-4 w-4" />Save &amp; Exit</button>
-            {active < sections.length - 1 ? <button type="button" onClick={continueToNext} disabled={pending} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ceda-burgundy px-7 text-sm font-bold text-white hover:bg-[#5C150D] disabled:opacity-60">Continue <ChevronRight aria-hidden="true" className="h-4 w-4" /></button> : <button type="button" onClick={submitApplication} disabled={pending || categories.length === 0} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ceda-burgundy px-7 text-sm font-bold text-white hover:bg-[#5C150D] disabled:opacity-60">{pending ? "Submitting…" : "Submit application"}<Check aria-hidden="true" className="h-4 w-4" /></button>}
+            <button type="button" onClick={saveAndExit} disabled={pending || uploadingAttachments} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold text-ceda-muted hover:bg-surface-muted disabled:opacity-50"><Save aria-hidden="true" className="h-4 w-4" />Save &amp; Exit</button>
+            {active < sections.length - 1 ? <button type="button" onClick={continueToNext} disabled={pending || uploadingAttachments} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ceda-burgundy px-7 text-sm font-bold text-white hover:bg-[#5C150D] disabled:opacity-60">Continue <ChevronRight aria-hidden="true" className="h-4 w-4" /></button> : <button type="button" onClick={submitApplication} disabled={pending || uploadingAttachments || categories.length === 0} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-ceda-burgundy px-7 text-sm font-bold text-white hover:bg-[#5C150D] disabled:opacity-60">{pending ? "Submitting…" : uploadingAttachments ? "Waiting for upload…" : "Submit application"}<Check aria-hidden="true" className="h-4 w-4" /></button>}
           </div>
-          <span className="text-center text-xs text-ceda-muted sm:min-w-24" role="status">{pending ? "Saving…" : savedMessage}</span>
+          <span className="text-center text-xs text-ceda-muted sm:min-w-24" role="status">{pending ? "Saving…" : uploadingAttachments ? "Uploading…" : savedMessage}</span>
         </footer>
       </form>
     </div>

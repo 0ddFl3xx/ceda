@@ -4,8 +4,13 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { categories, evaluatorAssignments, feedback, formFields, ideaStageHistory, ideas, ideaVersions, workflowStages } from "@/db/schema";
+import { attachments, categories, evaluatorAssignments, feedback, formFields, ideaStageHistory, ideas, ideaVersions, workflowStages } from "@/db/schema";
+import { MAX_ATTACHMENTS_PER_VERSION } from "@/lib/attachments";
 import { requireRole } from "@/lib/authorization";
+import {
+  persistResubmissionAttachments,
+  verifyStagedAttachmentsForResubmission,
+} from "@/lib/server/attachments";
 import { writeAudit } from "@/lib/server/audit";
 import { notifyIdeaFollowers } from "@/lib/server/idea-alerts";
 import { dispatchNotificationEmails, getUsersWithRole, insertInAppNotifications } from "@/lib/server/notifications";
@@ -39,7 +44,7 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
   if (summary.length < 30 || summary.length > 5000) fieldErrors.summary = "Use between 30 and 5,000 characters.";
   if (responseText.length < 20 || responseText.length > 5000) fieldErrors.response = "Explain how you addressed the feedback (20–5,000 characters).";
 
-  const [fieldDefinitions, stageRows, categoryRows, lastVersion] = await Promise.all([
+  const [fieldDefinitions, stageRows, categoryRows, lastVersion, currentAttachments] = await Promise.all([
     db.select({ key: formFields.key, label: formFields.label, type: formFields.type, required: formFields.required, options: formFields.options })
       .from(formFields).where(and(eq(formFields.callId, idea.callId), eq(formFields.isActive, true))).orderBy(asc(formFields.position)),
     db.select({ id: workflowStages.id, name: workflowStages.name }).from(workflowStages)
@@ -49,13 +54,45 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
       : Promise.resolve([]),
     db.select({ versionNo: ideaVersions.versionNo }).from(ideaVersions)
       .where(eq(ideaVersions.ideaId, idea.id)).orderBy(desc(ideaVersions.versionNo)).limit(1),
+    idea.currentVersionId
+      ? db.select({
+          id: attachments.id,
+          fileName: attachments.fileName,
+          fileUrl: attachments.fileUrl,
+          fileSize: attachments.fileSize,
+          mimeType: attachments.mimeType,
+        }).from(attachments).where(eq(attachments.ideaVersionId, idea.currentVersionId))
+      : Promise.resolve([]),
   ]);
   if (!stageRows[0]) return { error: "This opportunity has no evaluation stage configured. Contact CEDA for help." };
   if (!categoryRows[0]) fieldErrors.categoryId = "Choose a valid category.";
   const { answers, fieldErrors: answerErrors } = validateDynamicAnswers(formData, fieldDefinitions);
   Object.assign(fieldErrors, answerErrors);
+
+  const requestedKeepIds = new Set(
+    formData
+      .getAll("keepAttachmentId")
+      .filter((value): value is string => typeof value === "string" && uuidPattern.test(value)),
+  );
+  const keptAttachments = currentAttachments.filter((file) => requestedKeepIds.has(file.id));
+
+  const stagedTokens = formData
+    .getAll("stagedAttachment")
+    .filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
+  const stagedCheck = await verifyStagedAttachmentsForResubmission({
+    tokens: stagedTokens,
+    ideaId: idea.id,
+    userId: submitter.id,
+  });
+  if (!stagedCheck.ok) {
+    fieldErrors.attachments = stagedCheck.error;
+  } else if (keptAttachments.length + stagedCheck.payloads.length > MAX_ATTACHMENTS_PER_VERSION) {
+    fieldErrors.attachments = `A submission version can include at most ${MAX_ATTACHMENTS_PER_VERSION} files.`;
+  }
+
   if (Object.keys(fieldErrors).length) return { error: "Review the highlighted fields and try again.", fieldErrors };
 
+  const verifiedNewAttachments = stagedCheck.ok ? stagedCheck.payloads : [];
   const now = new Date();
   const versionNo = (lastVersion[0]?.versionNo ?? 0) + 1;
   const versionId = randomUUID();
@@ -84,6 +121,18 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
       answers,
       createdBy: submitter.id,
       submittedAt: now,
+    });
+    await persistResubmissionAttachments(tx, {
+      ideaId: idea.id,
+      newVersionId: versionId,
+      userId: submitter.id,
+      keptAttachments,
+      newAttachments: verifiedNewAttachments.map((item) => ({
+        fileName: item.fileName,
+        storageKey: item.storageKey,
+        fileSize: item.fileSize,
+        mimeType: item.mimeType,
+      })),
     });
     await tx.update(ideas).set({
       currentVersionId: versionId,
@@ -119,7 +168,14 @@ export async function resubmitIdeaAction(_previous: SubmissionState, formData: F
       action: "idea.resubmitted",
       entityType: "idea",
       entityId: idea.id,
-      metadata: { referenceNo: idea.referenceNo, versionNo, previousVersionId: idea.currentVersionId, versionId },
+      metadata: {
+        referenceNo: idea.referenceNo,
+        versionNo,
+        previousVersionId: idea.currentVersionId,
+        versionId,
+        attachmentCount: keptAttachments.length + verifiedNewAttachments.length,
+        newAttachmentCount: verifiedNewAttachments.length,
+      },
     });
   });
   await dispatchNotificationEmails(emailEvents);

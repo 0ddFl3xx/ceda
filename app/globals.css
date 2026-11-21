@@ -4,7 +4,7 @@
   --background: #FFFFFF;
   --foreground: #37231A;
 
-  /* CEDA Brand Design System Sampled from Reference */
+  /* CEDA Brand Design System Sampled from Reference (Preserved) */
   --ceda-burgundy: #7A1F14;
   --ceda-burgundy-dark: #5C150D;
   --ceda-burgundy-light: #94291D;
@@ -20,6 +20,78 @@
   --ceda-text-muted: #7F5E4E;
   --ceda-border: rgba(122, 31, 20, 0.14);
   --surface-muted: #F8F9FA;
+
+  /* Tier 2: Semantic Status Surfaces & Inks */
+  --status-success-bg: #E8F5ED;
+  --status-success-border: #16803C;
+  --status-success-ink: #14532D;
+  --status-warning-bg: #FFF1E4;
+  --status-warning-border: #C56500;
+  --status-warning-ink: #7C3D00;
+  --status-danger-bg: #FFF5F4;
+  --status-danger-border: #B42318;
+  --status-danger-ink: #8B1D14;
+  --status-info-bg: #EEF0FA;
+  --status-info-border: #315EDB;
+  --status-info-ink: #1E3A8A;
+
+  /* Tier 1: Custom Base Spacing Scale (4px rhythmic grid) */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+
+  /* Tier 2 & 3: Semantic Fluid & Layout Spacing (WCAG 1.4.4 max/min <= 2.5x) */
+  --space-gutter: clamp(1rem, 2.5vw, 2rem);
+  --space-section-sm: clamp(2rem, 4vw, 3rem);
+  --space-section: clamp(3rem, 5vw, 5rem);
+  --space-section-lg: clamp(3.75rem, 6.5vw, 6.25rem);
+  --space-card-sm: clamp(0.875rem, 1.8vw, 1.25rem);
+  --space-card: clamp(1.25rem, 2.5vw, 1.75rem);
+  --space-card-lg: clamp(1.5rem, 3vw, 2.5rem);
+  --space-stack-xs: 0.5rem;
+  --space-stack-sm: 0.75rem;
+  --space-stack: 1.25rem;
+  --space-stack-lg: 2rem;
+  --space-stack-xl: 3rem;
+  --space-cluster-xs: 0.375rem;
+  --space-cluster-sm: 0.5rem;
+  --space-cluster: 0.75rem;
+  --space-cluster-lg: 1.25rem;
+  --space-field: 0.375rem;
+
+  /* Container Width Tokens */
+  --container-narrow: 44rem;     /* 704px — Auth, legal, focused reading */
+  --container-content: 68.75rem; /* 1100px — Forms, admin sub-pages */
+  --container-shell: 86.25rem;   /* 1380px — Public pages, navbar, footer */
+  --container-workspace: 90rem;  /* 1440px — Multi-column dashboards */
+
+  /* Shape & Radii Tokens */
+  --radius-control: 0.625rem; /* 10px */
+  --radius-card: 1rem;        /* 16px */
+  --radius-panel: 1.5rem;     /* 24px */
+  --radius-pill: 9999px;
+
+  /* Elevation & Shadow Tokens (warm CEDA ink tint) */
+  --shadow-xs: 0 1px 2px rgba(51, 31, 23, 0.05);
+  --shadow-card: 0 10px 28px rgba(51, 31, 23, 0.06);
+  --shadow-elevated: 0 16px 42px rgba(77, 31, 18, 0.09);
+  --shadow-modal: 0 24px 64px rgba(55, 35, 26, 0.22);
+  --shadow-brand: 0 18px 44px rgba(122, 31, 20, 0.16);
+
+  /* Motion & Focus Tokens */
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --focus-ring-color: var(--ceda-orange);
 }
 
 @theme inline {
@@ -27,14 +99,62 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Preserved CEDA Brand Palette */
   --color-ceda-burgundy: var(--ceda-burgundy);
+  --color-ceda-burgundy-dark: var(--ceda-burgundy-dark);
+  --color-ceda-burgundy-light: var(--ceda-burgundy-light);
   --color-ceda-orange: var(--ceda-orange);
+  --color-ceda-orange-glow: var(--ceda-orange-glow);
   --color-ceda-peach: var(--ceda-peach);
+  --color-ceda-peach-light: var(--ceda-peach-light);
+  --color-ceda-cream: var(--ceda-cream-start);
+  --color-ceda-cream-mid: var(--ceda-cream-mid);
+  --color-ceda-cream-end: var(--ceda-cream-end);
   --color-ceda-ink: var(--ceda-text-main);
   --color-ceda-body: var(--ceda-text-body);
   --color-ceda-muted: var(--ceda-text-muted);
   --color-surface-muted: var(--surface-muted);
   --color-ceda-line: var(--ceda-border);
+
+  /* Custom Spacing Scale Utilities (p-ds-4, gap-ds-6, py-section, px-gutter, etc.) */
+  --spacing-ds-1: var(--space-1);
+  --spacing-ds-2: var(--space-2);
+  --spacing-ds-3: var(--space-3);
+  --spacing-ds-4: var(--space-4);
+  --spacing-ds-5: var(--space-5);
+  --spacing-ds-6: var(--space-6);
+  --spacing-ds-8: var(--space-8);
+  --spacing-ds-10: var(--space-10);
+  --spacing-ds-12: var(--space-12);
+  --spacing-ds-16: var(--space-16);
+  --spacing-ds-20: var(--space-20);
+  --spacing-gutter: var(--space-gutter);
+  --spacing-section-sm: var(--space-section-sm);
+  --spacing-section: var(--space-section);
+  --spacing-section-lg: var(--space-section-lg);
+  --spacing-card-sm: var(--space-card-sm);
+  --spacing-card: var(--space-card);
+  --spacing-card-lg: var(--space-card-lg);
+  --spacing-stack-xs: var(--space-stack-xs);
+  --spacing-stack-sm: var(--space-stack-sm);
+  --spacing-stack: var(--space-stack);
+  --spacing-stack-lg: var(--space-stack-lg);
+  --spacing-stack-xl: var(--space-stack-xl);
+  --spacing-cluster-xs: var(--space-cluster-xs);
+  --spacing-cluster-sm: var(--space-cluster-sm);
+  --spacing-cluster: var(--space-cluster);
+  --spacing-cluster-lg: var(--space-cluster-lg);
+  --spacing-field: var(--space-field);
+
+  /* Custom Radii & Shadows */
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-brand: var(--shadow-brand);
 }
 
 html {

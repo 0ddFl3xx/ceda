@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { Download } from "lucide-react";
 import { addEvaluatorInternalNote, submitEvaluation, type EvaluationState, type InternalNoteState } from "@/app/(dashboards)/evaluator/assignments/actions";
+import { formatFileSize, getAttachmentDownloadPath, getAttachmentTypeLabel } from "@/lib/attachments";
 
 type Criterion = { id: string; name: string; description: string | null; maxScore: number; weight: string };
 type SubmissionField = { key: string; label: string; helpText: string | null; sectionKey: string; position: number };
-type SubmissionAttachment = { id: string; fileName: string; fileUrl: string; mimeType: string | null; fileSize: number | null };
+type SubmissionAttachment = { id: string; fileName: string; mimeType: string | null; fileSize: number | null };
 type Props = {
   assignmentId: string;
   versionId: string;
@@ -59,7 +61,7 @@ export function EvaluationForm({ assignmentId, versionId, referenceNo, stageName
         if (!rows.length) return null;
         return <section key={sectionKey} aria-label={sections[sectionKey] ?? sectionKey.replaceAll("_", " ")}><h3 className="border-b border-ceda-line pb-2 text-sm font-bold uppercase tracking-wide text-ceda-burgundy">{sections[sectionKey] ?? sectionKey.replaceAll("_", " ")}</h3><dl className="divide-y divide-ceda-line">{rows.map((row) => <div key={row.key} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] sm:gap-5"><dt className="text-sm font-semibold text-ceda-ink">{row.label}{row.helpText && <span className="mt-1 block text-xs font-normal leading-5 text-ceda-muted">{row.helpText}</span>}</dt><dd className="break-words text-sm leading-6 text-ceda-body"><AnswerValue value={row.value} /></dd></div>)}</dl></section>;
       })}</div>}
-      {submissionAttachments.length > 0 && <section className="mt-6" aria-labelledby="submission-files-heading"><h3 id="submission-files-heading" className="text-sm font-bold text-ceda-ink">Supporting files</h3><ul className="mt-2 space-y-2">{submissionAttachments.map((file) => <li key={file.id}><a href={file.fileUrl} target="_blank" rel="noreferrer" className="break-all text-sm font-semibold text-ceda-burgundy underline underline-offset-2">{file.fileName}</a></li>)}</ul></section>}
+      {submissionAttachments.length > 0 && <section className="mt-6" aria-labelledby="submission-files-heading"><h3 id="submission-files-heading" className="text-sm font-bold text-ceda-ink">Supporting files</h3><ul className="mt-2 space-y-2">{submissionAttachments.map((file) => <li key={file.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ceda-line bg-[#FFFDFC] px-3.5 py-2.5"><span className="min-w-0"><span className="block truncate text-sm font-semibold text-ceda-ink">{file.fileName}</span><span className="block text-xs text-ceda-muted">{getAttachmentTypeLabel(file.mimeType, file.fileName)} · {formatFileSize(file.fileSize)}</span></span><a href={getAttachmentDownloadPath(file.id)} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-ceda-line bg-white px-3.5 text-xs font-semibold text-ceda-burgundy hover:bg-[#FFF9F4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-burgundy"><Download aria-hidden="true" className="h-3.5 w-3.5" />Download</a></li>)}</ul></section>}
     </section>
     <form action={action} aria-labelledby="evaluation-heading" className="space-y-5 rounded-2xl border border-ceda-line bg-white p-6 shadow-sm sm:p-8">
       <input type="hidden" name="assignmentId" value={assignmentId} />
