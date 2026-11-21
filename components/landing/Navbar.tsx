@@ -524,13 +524,7 @@ export function Navbar() {
 
             <div className="site-header-actions">
               {session?.user ? (
-                <>
-                  <Link
-                    href="/submit"
-                    className="inline-flex min-h-10 items-center justify-center rounded-full border border-ceda-burgundy/25 bg-ceda-cream px-4 text-sm font-semibold text-ceda-burgundy transition hover:border-ceda-burgundy/50 hover:bg-ceda-cream-mid focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange">
-                    Submit an idea
-                  </Link>
-
+                <>                 
                   <button
                     ref={accountTriggerRef}
                     type="button"
