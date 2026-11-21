@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Download } from "lucide-react";
-import { resubmitIdeaAction } from "@/app/(dashboards)/dashboard/submissions/actions";
+import { resubmitIdeaAction } from "@/app/(workspace)/(dashboards)/dashboard/submissions/actions";
 import type { SubmissionState } from "@/app/(submissions)/submit/actions";
 import { AttachmentUploader } from "@/components/submit/AttachmentUploader";
 import {

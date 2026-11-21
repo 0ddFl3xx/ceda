@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { Download } from "lucide-react";
-import { addEvaluatorInternalNote, submitEvaluation, type EvaluationState, type InternalNoteState } from "@/app/(dashboards)/evaluator/assignments/actions";
+import { addEvaluatorInternalNote, submitEvaluation, type EvaluationState, type InternalNoteState } from "@/app/(workspace)/(dashboards)/evaluator/assignments/actions";
 import { formatFileSize, getAttachmentDownloadPath, getAttachmentTypeLabel } from "@/lib/attachments";
 
 type Criterion = { id: string; name: string; description: string | null; maxScore: number; weight: string };
