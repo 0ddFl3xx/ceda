@@ -14,6 +14,7 @@ import {
   userRoles,
   workflowStages,
 } from "@/db/schema";
+import { formatPortalDate } from "@/lib/format";
 
 export interface AuditEntryRecord {
   id: string;
@@ -117,7 +118,7 @@ export async function loadAdminReviewPipeline(limit = 200) {
   }));
 }
 
-export async function loadAdminUsersDirectory(limit = 100) {
+export async function loadAdminUsersDirectory(limit = 200) {
   const [users, roleOptions] = await Promise.all([
     db
       .select({
@@ -169,7 +170,12 @@ export async function loadAdminUsersDirectory(limit = 100) {
         (role) => !currentRoles.some((item) => item.id === role.id),
       );
       return {
-        ...account,
+        id: account.id,
+        name: account.name,
+        email: account.email,
+        emailVerified: account.emailVerified,
+        createdAtIso: account.createdAt.toISOString(),
+        createdAtLabel: formatPortalDate(account.createdAt),
         currentRoles,
         availableRoles,
       };
