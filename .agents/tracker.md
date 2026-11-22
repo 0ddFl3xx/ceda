@@ -17,7 +17,7 @@
 | **P0** | 5 | Cloud Deployment & Live Hosted URL | In Progress | Deploy Next.js app to 24/7 cloud host; document region & storage costs |
 | **P1** | 6 | Live Status Dashboard & Free Alert Subscriptions | Done | — |
 | **P1** | 7 | Live Support Chat System | Done | — |
-| **P1** | 8 | Admin Content, Form & Criteria Management | Mostly Done | Downloadable document templates & remaining public page CMS |
+| **P1** | 8 | Admin Content, Form & Criteria Management | Done | — |
 | **P1** | 9 | Audit Trail & Data Protection Compliance (DPA 2024) | Mostly Done | Legal review sign-off, `timestamptz` cleanup |
 | **P2** | 10 | Reporting & Analytics Dashboards | In Progress | Visual charts, exportable reports, stage turnaround times, chat & demographic metrics |
 | **P2** | 11 | FAQs, Regulatory Directory & Support Channels | Mostly Done | CEDA approval of demo turnaround targets |
@@ -100,8 +100,8 @@
 - [x] Build admin workflow stage editor (create, rename/describe, reorder) and score-safe evaluation criteria editor (edit before scoring, archive/restore after scoring).
 - [x] Build admin submission category management with historical-safe deactivation (`app/(dashboards)/admin/categories/*`).
 - [x] Build audited admin FAQ CMS (`app/(dashboards)/admin/content/faqs/*`).
-- [ ] Add admin management UI for uploading/updating downloadable document templates (backed by Neon Object Storage).
-- [ ] Add admin management UI for remaining editable public portal content (e.g., news/announcements, guidelines).
+- [x] Add admin management UI for uploading/updating downloadable document templates backed by Neon Object Storage (`app/(workspace)/(dashboards)/admin/content/documents/*`, `app/api/documents/[id]/route.ts`, `lib/server/portal-content.ts`).
+- [x] Add admin management UI for remaining editable public portal content (news/announcements, guidelines) (`app/(workspace)/(dashboards)/admin/content/pages/*`, `app/(landingpage)/guidelines/page.tsx`, `app/(landingpage)/news/page.tsx`, `lib/portal-content.ts`).
 
 ### 9. Audit Trail & Data Protection Compliance (Botswana DPA 2024)
 - [x] Implement immutable transactional `audit_events` logging for sessions, registration, submissions, status transitions, evaluations, decisions, awards, chat actions, and admin edits (`lib/server/audit.ts`).
