@@ -148,8 +148,8 @@ const ALL_NAV_GROUPS: readonly WorkspaceNavGroup[] = [
     ],
   },
   {
-    id: "administration",
-    label: "Administration",
+    id: "admin-programmes",
+    label: "Calls & Reviews",
     items: [
       {
         id: "admin-overview",
@@ -167,13 +167,6 @@ const ALL_NAV_GROUPS: readonly WorkspaceNavGroup[] = [
         roles: ["admin"],
       },
       {
-        id: "admin-users",
-        label: "Users & Roles",
-        href: "/admin/users",
-        icon: "users",
-        roles: ["admin"],
-      },
-      {
         id: "admin-reviews",
         label: "Review Pipeline",
         href: "/admin/reviews",
@@ -187,6 +180,12 @@ const ALL_NAV_GROUPS: readonly WorkspaceNavGroup[] = [
         icon: "awards",
         roles: ["admin"],
       },
+    ],
+  },
+  {
+    id: "admin-content",
+    label: "Portal Content",
+    items: [
       {
         id: "admin-categories",
         label: "Categories",
@@ -213,6 +212,19 @@ const ALL_NAV_GROUPS: readonly WorkspaceNavGroup[] = [
         label: "Pages & News",
         href: "/admin/content/pages",
         icon: "pages",
+        roles: ["admin"],
+      },
+    ],
+  },
+  {
+    id: "admin-governance",
+    label: "Governance",
+    items: [
+      {
+        id: "admin-users",
+        label: "Users & Roles",
+        href: "/admin/users",
+        icon: "users",
         roles: ["admin"],
       },
       {

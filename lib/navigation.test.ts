@@ -27,23 +27,36 @@ describe("RBAC workspace navigation", () => {
     expect(notificationsItem?.badge).toBe("3");
   });
 
-  it("shows administration and account links for an admin", () => {
+  it("shows grouped administration categories and account links for an admin", () => {
     const groups = getNavigationForRoles(["admin"], 120);
     const groupIds = groups.map((group) => group.id);
-    const adminHrefs =
-      groups.find((group) => group.id === "administration")?.items.map((item) => item.href) ?? [];
+    const programmesHrefs =
+      groups.find((group) => group.id === "admin-programmes")?.items.map((item) => item.href) ?? [];
+    const contentHrefs =
+      groups.find((group) => group.id === "admin-content")?.items.map((item) => item.href) ?? [];
+    const governanceHrefs =
+      groups.find((group) => group.id === "admin-governance")?.items.map((item) => item.href) ?? [];
 
-    expect(groupIds).toEqual(["administration", "account"]);
-    expect(adminHrefs).toEqual([
+    expect(groupIds).toEqual([
+      "admin-programmes",
+      "admin-content",
+      "admin-governance",
+      "account",
+    ]);
+    expect(programmesHrefs).toEqual([
       "/admin",
       "/admin/calls/new",
-      "/admin/users",
       "/admin/reviews",
       "/admin/awards",
+    ]);
+    expect(contentHrefs).toEqual([
       "/admin/categories",
       "/admin/content/faqs",
       "/admin/content/documents",
       "/admin/content/pages",
+    ]);
+    expect(governanceHrefs).toEqual([
+      "/admin/users",
       "/admin/reports",
       "/admin/audit",
     ]);
@@ -66,7 +79,9 @@ describe("RBAC workspace navigation", () => {
 
   it("matches exact admin overview without false positives on admin sub-routes", () => {
     const groups = getNavigationForRoles(["admin"]);
-    const adminItems = groups.find((group) => group.id === "administration")?.items ?? [];
+    const adminItems = groups
+      .filter((group) => group.id.startsWith("admin-"))
+      .flatMap((group) => group.items);
     const overview = adminItems.find((item) => item.id === "admin-overview")!;
     const reports = adminItems.find((item) => item.id === "admin-reports")!;
     const calls = adminItems.find((item) => item.id === "admin-calls-new")!;
