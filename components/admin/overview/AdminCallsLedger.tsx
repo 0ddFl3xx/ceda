@@ -58,6 +58,13 @@ export function AdminCallsLedger({
           <Badge tone="neutral" size="sm">
             {calls.length} total
           </Badge>
+          <Link
+            href="/admin/calls"
+            className="ms-1 inline-flex items-center gap-0.5 text-xs font-semibold text-ceda-burgundy hover:underline underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
+          >
+            <span>View all</span>
+            <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
+          </Link>
         </div>
       </div>
 

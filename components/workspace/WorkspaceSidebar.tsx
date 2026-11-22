@@ -5,7 +5,6 @@ import Link, { useLinkStatus } from "next/link";
 import type { ReactNode } from "react";
 import {
   BarChart3,
-  Bell,
   BookOpenCheck,
   ClipboardCheck,
   Compass,
@@ -57,7 +56,6 @@ const NAV_ICONS: Record<NavIconKey, typeof LayoutDashboard> = {
   pages: Megaphone,
   reports: BarChart3,
   audit: ScrollText,
-  notifications: Bell,
   profile: UserRound,
   settings: Settings,
 };
@@ -75,7 +73,6 @@ export interface WorkspaceSidebarProps {
   user: WorkspaceUserSummary | null;
   roles: PortalRole[];
   onNavigate?: () => void;
-  onOpenNotifications: () => void;
   onSignOut: () => void;
   signingOut: boolean;
   headerAction?: ReactNode;
@@ -99,7 +96,6 @@ export function WorkspaceSidebar({
   user,
   roles,
   onNavigate,
-  onOpenNotifications,
   onSignOut,
   signingOut,
   headerAction,
@@ -160,9 +156,7 @@ export function WorkspaceSidebar({
               <ul className="flex flex-col gap-1">
                 {group.items.map((item) => {
                   const Icon = NAV_ICONS[item.icon];
-                  const isNotificationsTrigger = item.id === "notifications";
-                  const active =
-                    !isNotificationsTrigger && isNavItemActive(pathname, item);
+                  const active = isNavItemActive(pathname, item);
                   const itemClasses = cn(
                     "ds-nav-item group flex min-h-10 w-full items-center rounded-control text-left text-sm transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange",
                     collapsed
@@ -173,63 +167,40 @@ export function WorkspaceSidebar({
                       : "border border-transparent font-medium text-ceda-body hover:bg-white/75 hover:text-ceda-ink",
                   );
 
-                  const innerContent = (
-                    <>
-                      <Icon
-                        aria-hidden="true"
-                        className={cn(
-                          "h-4.5 w-4.5 shrink-0 transition-colors",
-                          active
-                            ? "text-ceda-burgundy"
-                            : "text-ceda-muted group-hover:text-ceda-burgundy",
-                        )}
-                      />
-                      {!collapsed ? (
-                        <>
-                          <span className="min-w-0 flex-1 truncate">
-                            {item.label}
-                          </span>
-                          {!isNotificationsTrigger ? (
-                            <SidebarLinkPendingHint />
-                          ) : null}
-                          {item.badge ? (
-                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-ceda-burgundy px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-white">
-                              {item.badge}
-                            </span>
-                          ) : null}
-                        </>
-                      ) : (
-                        <span className="sr-only">{item.label}</span>
-                      )}
-                    </>
-                  );
-
                   return (
                     <li key={item.id}>
-                      {isNotificationsTrigger ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onNavigate?.();
-                            onOpenNotifications();
-                          }}
-                          aria-haspopup="dialog"
-                          title={collapsed ? item.label : undefined}
-                          className={itemClasses}
-                        >
-                          {innerContent}
-                        </button>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          onClick={onNavigate}
-                          aria-current={active ? "page" : undefined}
-                          title={collapsed ? item.label : undefined}
-                          className={itemClasses}
-                        >
-                          {innerContent}
-                        </Link>
-                      )}
+                      <Link
+                        href={item.href}
+                        onClick={onNavigate}
+                        aria-current={active ? "page" : undefined}
+                        title={collapsed ? item.label : undefined}
+                        className={itemClasses}
+                      >
+                        <Icon
+                          aria-hidden="true"
+                          className={cn(
+                            "h-4.5 w-4.5 shrink-0 transition-colors",
+                            active
+                              ? "text-ceda-burgundy"
+                              : "text-ceda-muted group-hover:text-ceda-burgundy",
+                          )}
+                        />
+                        {!collapsed ? (
+                          <>
+                            <span className="min-w-0 flex-1 truncate">
+                              {item.label}
+                            </span>
+                            <SidebarLinkPendingHint />
+                            {item.badge ? (
+                              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-ceda-burgundy px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-white">
+                                {item.badge}
+                              </span>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="sr-only">{item.label}</span>
+                        )}
+                      </Link>
                     </li>
                   );
                 })}

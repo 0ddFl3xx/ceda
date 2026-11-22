@@ -1,12 +1,13 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   addWorkflowStage,
   updateWorkflowStage,
 } from "@/app/(workspace)/(dashboards)/admin/calls/actions";
 import { FieldErrorMessage, FormErrorAnnouncer } from "@/components/ui/FormErrorFeedback";
+import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import {
   addWorkflowStageSchema,
   updateWorkflowStageSchema,
@@ -111,10 +112,21 @@ export function UpdateWorkflowStageForm({
   );
 }
 
+const STAGE_TYPE_OPTIONS = [
+  { value: "intake", label: "Intake" },
+  { value: "screening", label: "Screening" },
+  { value: "evaluation", label: "Evaluation" },
+  { value: "adjudication", label: "Adjudication" },
+  { value: "feedback", label: "Feedback" },
+  { value: "decision", label: "Decision" },
+  { value: "award", label: "Award" },
+] as const;
+
 export function AddWorkflowStageForm({ callId }: { callId: string }) {
   const [pending, startTransition] = useTransition();
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, submitCount },
@@ -145,9 +157,9 @@ export function AddWorkflowStageForm({ callId }: { callId: string }) {
         noValidate
         onSubmit={onSubmit}
         aria-labelledby="add-stage-heading"
-        className="mt-5 space-y-3 border-t border-ceda-line pt-5"
+        className="space-y-4"
       >
-        <h3 id="add-stage-heading" className="font-bold text-ceda-ink">
+        <h3 id="add-stage-heading" className="text-base font-bold text-ceda-ink">
           Add a workflow stage
         </h3>
         <div>
@@ -179,18 +191,26 @@ export function AddWorkflowStageForm({ callId }: { callId: string }) {
           <FieldErrorMessage id="stage-name-error" message={errors.name?.message} />
         </div>
         <div>
-          <label htmlFor="stage-type" className="text-sm font-semibold text-ceda-ink">
+          <span className="text-sm font-semibold text-ceda-ink">
             Stage type
-          </label>
-          <select id="stage-type" className={CALL_CONFIG_FIELD_CLASS} {...register("type")}>
-            <option value="intake">Intake</option>
-            <option value="screening">Screening</option>
-            <option value="evaluation">Evaluation</option>
-            <option value="adjudication">Adjudication</option>
-            <option value="feedback">Feedback</option>
-            <option value="decision">Decision</option>
-            <option value="award">Award</option>
-          </select>
+            <span className="ms-1 text-ceda-burgundy" aria-hidden="true">
+              *
+            </span>
+          </span>
+          <div className="mt-1.5">
+            <Controller
+              control={control}
+              name="type"
+              render={({ field }) => (
+                <SelectDropdown
+                  groupLabel="Stage type"
+                  value={field.value}
+                  options={STAGE_TYPE_OPTIONS}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </div>
         </div>
         <div>
           <label

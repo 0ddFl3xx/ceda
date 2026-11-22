@@ -28,12 +28,14 @@ export type {
 
 const triggerVariantClasses = {
   primary:
-    "min-h-11 rounded-full bg-ceda-burgundy px-ds-5 text-sm font-bold text-white shadow-xs hover:bg-ceda-burgundy-dark",
+    "min-h-11 justify-center rounded-full bg-ceda-burgundy px-ds-5 text-sm font-bold text-white shadow-xs hover:bg-ceda-burgundy-dark",
   secondary:
-    "min-h-11 rounded-full border border-ceda-line bg-white px-ds-5 text-sm font-bold text-ceda-ink shadow-xs hover:border-ceda-burgundy/40 hover:bg-ceda-cream hover:text-ceda-burgundy",
+    "min-h-11 justify-center rounded-full border border-ceda-line bg-white px-ds-5 text-sm font-bold text-ceda-ink shadow-xs hover:border-ceda-burgundy/40 hover:bg-ceda-cream hover:text-ceda-burgundy",
   ghost:
-    "min-h-10 rounded-full px-ds-4 text-sm font-semibold text-ceda-body hover:bg-ceda-cream hover:text-ceda-burgundy",
-  icon: "h-10 w-10 rounded-full border border-ceda-line bg-white p-0 text-ceda-body shadow-xs hover:border-ceda-burgundy/40 hover:bg-ceda-cream hover:text-ceda-burgundy",
+    "min-h-10 justify-center rounded-full px-ds-4 text-sm font-semibold text-ceda-body hover:bg-ceda-cream hover:text-ceda-burgundy",
+  icon: "h-10 w-10 justify-center rounded-full border border-ceda-line bg-white p-0 text-ceda-body shadow-xs hover:border-ceda-burgundy/40 hover:bg-ceda-cream hover:text-ceda-burgundy",
+  field:
+    "ds-input w-full justify-between bg-white text-start text-sm font-normal text-ceda-ink",
 };
 
 /**
@@ -187,7 +189,7 @@ export function DropdownMenu({
         aria-haspopup="menu"
         aria-expanded={expanded}
         className={cn(
-          "ds-menu-trigger inline-flex cursor-pointer items-center justify-center gap-ds-2 transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange",
+          "ds-menu-trigger inline-flex cursor-pointer items-center gap-ds-2 transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange",
           triggerVariantClasses[variant],
           triggerClassName,
         )}
@@ -221,7 +223,7 @@ export function DropdownMenu({
           </span>
         ) : null}
         {variant !== "icon" ? (
-          <span>{label}</span>
+          <span className="min-w-0 truncate">{label}</span>
         ) : (
           <span className="sr-only">{label}</span>
         )}

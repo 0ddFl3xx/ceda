@@ -1,12 +1,13 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   addEvaluationCriterion,
   updateEvaluationCriterion,
 } from "@/app/(workspace)/(dashboards)/admin/calls/actions";
 import { FieldErrorMessage, FormErrorAnnouncer } from "@/components/ui/FormErrorFeedback";
+import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import {
   addCriterionSchema,
   criterionSchema,
@@ -189,6 +190,7 @@ export function AddCriterionForm({
   const [pending, startTransition] = useTransition();
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, submitCount },
@@ -226,31 +228,37 @@ export function AddCriterionForm({
         noValidate
         onSubmit={onSubmit}
         aria-labelledby="add-criterion-heading"
-        className="mt-5 space-y-3 border-t border-ceda-line pt-5"
+        className="space-y-4"
       >
-        <h3 id="add-criterion-heading" className="font-bold text-ceda-ink">
+        <h3 id="add-criterion-heading" className="text-base font-bold text-ceda-ink">
           Add a criterion
         </h3>
         <div>
-          <label htmlFor="stageId" className="text-sm font-semibold text-ceda-ink">
+          <span className="text-sm font-semibold text-ceda-ink">
             Evaluation stage
-          </label>
-          <select
-            id="stageId"
-            aria-invalid={errors.stageId ? "true" : "false"}
-            aria-describedby={errors.stageId ? "criterion-stage-error" : undefined}
-            className={CALL_CONFIG_FIELD_CLASS}
-            {...register("stageId")}
-          >
-            <option value="" disabled>
-              Select a stage
-            </option>
-            {evaluationStages.map((stage) => (
-              <option key={stage.id} value={stage.id}>
-                {stage.name}
-              </option>
-            ))}
-          </select>
+            <span className="ms-1 text-ceda-burgundy" aria-hidden="true">
+              *
+            </span>
+          </span>
+          <div className="mt-1.5">
+            <Controller
+              control={control}
+              name="stageId"
+              render={({ field }) => (
+                <SelectDropdown
+                  groupLabel="Evaluation stage"
+                  value={field.value}
+                  placeholder="Select a stage"
+                  invalid={Boolean(errors.stageId)}
+                  options={evaluationStages.map((stage) => ({
+                    value: stage.id,
+                    label: stage.name,
+                  }))}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </div>
           <FieldErrorMessage
             id="criterion-stage-error"
             message={errors.stageId?.message}

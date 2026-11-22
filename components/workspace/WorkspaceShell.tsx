@@ -41,7 +41,7 @@ export function WorkspaceShell({
     useNotificationsModal();
   const effectiveUnreadCount = liveUnreadCount ?? unreadNotifications;
 
-  const groups = getNavigationForRoles(roles, effectiveUnreadCount);
+  const groups = getNavigationForRoles(roles);
   const breadcrumbs = buildWorkspaceBreadcrumbs(pathname);
   const resolvedSectionLabel =
     sectionLabel ??
@@ -86,7 +86,6 @@ export function WorkspaceShell({
           collapsed={collapsed}
           user={user}
           roles={roles}
-          onOpenNotifications={openNotifications}
           onSignOut={() => void handleSignOut()}
           signingOut={signingOut}
           headerAction={
@@ -123,7 +122,6 @@ export function WorkspaceShell({
               user={user}
               roles={roles}
               onNavigate={closeDrawer}
-              onOpenNotifications={openNotifications}
               onSignOut={() => void handleSignOut()}
               signingOut={signingOut}
               headerAction={

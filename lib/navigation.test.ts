@@ -8,7 +8,7 @@ import {
 
 describe("RBAC workspace navigation", () => {
   it("shows only submitter and account links for a submitter", () => {
-    const groups = getNavigationForRoles(["submitter"], 3);
+    const groups = getNavigationForRoles(["submitter"]);
     const groupIds = groups.map((group) => group.id);
     const hrefs = groups.flatMap((group) => group.items.map((item) => item.href));
 
@@ -16,19 +16,17 @@ describe("RBAC workspace navigation", () => {
     expect(hrefs).toContain("/dashboard");
     expect(hrefs).toContain("/submit");
     expect(hrefs).toContain("/track");
+    expect(hrefs).toContain("/profile");
+    expect(hrefs).toContain("/account/settings");
+    expect(hrefs).not.toContain("/notifications");
     expect(hrefs).not.toContain("/admin");
     expect(hrefs).not.toContain("/evaluator");
     expect(hrefs).not.toContain("/adjudicator");
     expect(hrefs).not.toContain("/consultant");
-
-    const notificationsItem = groups
-      .find((group) => group.id === "account")
-      ?.items.find((item) => item.id === "notifications");
-    expect(notificationsItem?.badge).toBe("3");
   });
 
   it("shows grouped administration categories and account links for an admin", () => {
-    const groups = getNavigationForRoles(["admin"], 120);
+    const groups = getNavigationForRoles(["admin"]);
     const groupIds = groups.map((group) => group.id);
     const programmesHrefs =
       groups.find((group) => group.id === "admin-programmes")?.items.map((item) => item.href) ?? [];
@@ -36,6 +34,8 @@ describe("RBAC workspace navigation", () => {
       groups.find((group) => group.id === "admin-content")?.items.map((item) => item.href) ?? [];
     const governanceHrefs =
       groups.find((group) => group.id === "admin-governance")?.items.map((item) => item.href) ?? [];
+    const accountHrefs =
+      groups.find((group) => group.id === "account")?.items.map((item) => item.href) ?? [];
 
     expect(groupIds).toEqual([
       "admin-programmes",
@@ -45,7 +45,7 @@ describe("RBAC workspace navigation", () => {
     ]);
     expect(programmesHrefs).toEqual([
       "/admin",
-      "/admin/calls/new",
+      "/admin/calls",
       "/admin/reviews",
       "/admin/awards",
     ]);
@@ -60,11 +60,7 @@ describe("RBAC workspace navigation", () => {
       "/admin/reports",
       "/admin/audit",
     ]);
-
-    const notificationsItem = groups
-      .find((group) => group.id === "account")
-      ?.items.find((item) => item.id === "notifications");
-    expect(notificationsItem?.badge).toBe("99+");
+    expect(accountHrefs).toEqual(["/profile", "/account/settings"]);
   });
 
   it("combines workspace sections cleanly for multi-role users", () => {
@@ -84,11 +80,13 @@ describe("RBAC workspace navigation", () => {
       .flatMap((group) => group.items);
     const overview = adminItems.find((item) => item.id === "admin-overview")!;
     const reports = adminItems.find((item) => item.id === "admin-reports")!;
-    const calls = adminItems.find((item) => item.id === "admin-calls-new")!;
+    const calls = adminItems.find((item) => item.id === "admin-calls")!;
 
     expect(isNavItemActive("/admin", overview)).toBe(true);
     expect(isNavItemActive("/admin/reports", overview)).toBe(false);
     expect(isNavItemActive("/admin/reports", reports)).toBe(true);
+    expect(isNavItemActive("/admin/calls", calls)).toBe(true);
+    expect(isNavItemActive("/admin/calls/new", calls)).toBe(true);
     expect(isNavItemActive("/admin/calls/abc-123", calls)).toBe(true);
   });
 

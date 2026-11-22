@@ -28,8 +28,8 @@ export function AdminKpiStrip({
       value: openCallsCount,
       icon: Megaphone,
       iconTone: "bg-[#F3E9E5] text-ceda-burgundy",
-      href: "#calls-heading",
-      actionLabel: "Jump to calls",
+      href: "/admin/calls",
+      actionLabel: "View all calls",
     },
     {
       label: "Active submissions",

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeSlugInput, toUrlSlug } from "./slugify";
+import {
+  sanitizeFieldKeyInput,
+  sanitizeSlugInput,
+  toFieldKey,
+  toUrlSlug,
+} from "./slugify";
 
 describe("slugify helpers", () => {
   it("turns call titles with spaces, punctuation, and accents into clean URL slugs", () => {
@@ -20,5 +25,11 @@ describe("slugify helpers", () => {
   it("replaces spaces with hyphens while typing without stripping trailing hyphen mid-word", () => {
     expect(sanitizeSlugInput("Youth Innovation ")).toBe("youth-innovation-");
     expect(sanitizeSlugInput("youth---2027!!")).toBe("youth-2027");
+  });
+
+  it("generates and sanitizes valid snake_case field keys", () => {
+    expect(toFieldKey("Projected Revenue (BWP)")).toBe("projected_revenue_bwp");
+    expect(toFieldKey("2027 Target Market")).toBe("target_market");
+    expect(sanitizeFieldKeyInput("Target Market ")).toBe("target_market_");
   });
 });

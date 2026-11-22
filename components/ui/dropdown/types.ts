@@ -70,7 +70,7 @@ export interface DropdownMenuProps {
   triggerIcon?: ReactNode;
   hideChevron?: boolean;
   ariaLabel?: string;
-  variant?: "primary" | "secondary" | "ghost" | "icon";
+  variant?: "primary" | "secondary" | "ghost" | "icon" | "field";
   align?: "start" | "end";
   items: readonly DropdownMenuItem[];
   className?: string;
