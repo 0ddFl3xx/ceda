@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { asc, eq } from "drizzle-orm";
@@ -121,13 +120,8 @@ async function CallConfigurationContent({
   return (
     <main
       id="main-content"
-      className="flex-1 bg-white px-4 py-10 sm:px-6 sm:py-14">
-      <div className="mx-auto max-w-275">
-        <Link
-          href="/admin"
-          className="text-sm font-semibold text-ceda-burgundy underline underline-offset-4">
-          ← Back to administration
-        </Link>
+      className="flex-1 bg-white px-gutter py-ds-6 sm:py-ds-8">
+      <div className="mx-auto w-full max-w-(--container-workspace)">      
         <header className="mt-5 flex flex-col gap-5 rounded-2xl bg-[#5C150D] p-6 text-white sm:flex-row sm:items-end sm:justify-between sm:p-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4B58A]">

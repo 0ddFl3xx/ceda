@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { asc } from "drizzle-orm";
 import {
@@ -28,7 +27,10 @@ async function CategoryContent({
 }) {
   await requireRole("admin", "/admin/categories");
   const [categoryRows, query] = await Promise.all([
-    db.select().from(categories).orderBy(asc(categories.position), asc(categories.name)),
+    db
+      .select()
+      .from(categories)
+      .orderBy(asc(categories.position), asc(categories.name)),
     searchParams,
   ]);
   const error =
@@ -39,14 +41,10 @@ async function CategoryContent({
         : "";
 
   return (
-    <main id="main-content" className="flex-1 bg-white px-4 py-10 sm:px-6 sm:py-14">
-      <div className="mx-auto max-w-4xl">
-        <Link
-          href="/admin"
-          className="text-sm font-semibold text-ceda-burgundy underline underline-offset-4"
-        >
-          ← Back to administration
-        </Link>
+    <main
+      id="main-content"
+      className="flex-1 bg-white px-gutter py-ds-6 sm:py-ds-8">
+      <div className="mx-auto w-full max-w-(--container-workspace)">
         <header className="mt-5">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-ceda-burgundy">
             Portal configuration
@@ -55,19 +53,21 @@ async function CategoryContent({
             Submission categories
           </h1>
           <p className="mt-2 text-sm leading-6 text-ceda-muted">
-            Manage the strategic priority choices shown on new submissions. Deactivated categories stay attached to earlier applications.
+            Manage the strategic priority choices shown on new submissions.
+            Deactivated categories stay attached to earlier applications.
           </p>
         </header>
         {error ? (
           <p
             className="mt-5 rounded-xl border border-red-800/25 bg-red-50 p-4 text-sm text-red-900"
-            role="alert"
-          >
+            role="alert">
             {error}
           </p>
         ) : null}
         <section aria-labelledby="category-list-heading" className="mt-8">
-          <h2 id="category-list-heading" className="text-xl font-bold text-ceda-ink">
+          <h2
+            id="category-list-heading"
+            className="text-xl font-bold text-ceda-ink">
             Current categories
           </h2>
           {categoryRows.length ? (
@@ -77,15 +77,13 @@ async function CategoryContent({
                   key={category.id}
                   className={`rounded-2xl border border-ceda-line p-5 ${
                     category.isActive ? "bg-white" : "bg-[#F7F8F9]"
-                  }`}
-                >
+                  }`}>
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <h3 className="font-bold text-ceda-ink">{category.name}</h3>
                     <span
                       className={`text-xs font-semibold ${
                         category.isActive ? "text-green-800" : "text-ceda-muted"
-                      }`}
-                    >
+                      }`}>
                       {category.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
@@ -95,7 +93,11 @@ async function CategoryContent({
                     description={category.description ?? ""}
                   />
                   <form action={setCategoryActive} className="mt-3">
-                    <input type="hidden" name="categoryId" value={category.id} />
+                    <input
+                      type="hidden"
+                      name="categoryId"
+                      value={category.id}
+                    />
                     <input
                       type="hidden"
                       name="isActive"
@@ -103,8 +105,7 @@ async function CategoryContent({
                     />
                     <button
                       type="submit"
-                      className="inline-flex min-h-12 items-center rounded-full border border-ceda-line px-5 text-sm font-semibold text-ceda-burgundy"
-                    >
+                      className="inline-flex min-h-12 items-center rounded-full border border-ceda-line px-5 text-sm font-semibold text-ceda-burgundy">
                       {category.isActive ? "Deactivate" : "Activate"}
                     </button>
                   </form>
@@ -119,9 +120,10 @@ async function CategoryContent({
         </section>
         <section
           aria-labelledby="new-category-heading"
-          className="mt-8 rounded-2xl border border-ceda-line bg-[#FFF9F4] p-6 sm:p-8"
-        >
-          <h2 id="new-category-heading" className="text-xl font-bold text-ceda-ink">
+          className="mt-8 rounded-2xl border border-ceda-line bg-[#FFF9F4] p-6 sm:p-8">
+          <h2
+            id="new-category-heading"
+            className="text-xl font-bold text-ceda-ink">
             Add a category
           </h2>
           <CreateCategoryForm />

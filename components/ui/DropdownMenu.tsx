@@ -51,6 +51,8 @@ export function DropdownMenu({
   align = "start",
   items,
   className,
+  triggerClassName,
+  menuClassName,
 }: DropdownMenuProps) {
   const triggerId = useId();
   const menuId = useId();
@@ -187,6 +189,7 @@ export function DropdownMenu({
         className={cn(
           "ds-menu-trigger inline-flex cursor-pointer items-center justify-center gap-ds-2 transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange",
           triggerVariantClasses[variant],
+          triggerClassName,
         )}
         {...({ commandfor: menuId, command: "toggle-popover" } as Record<
           string,
@@ -246,7 +249,7 @@ export function DropdownMenu({
         {/* Nested inside popover because Chromium drops focusgroup keyboard behavior on popover root */}
         <div
           ref={groupRef}
-          className="ds-menu-list"
+          className={cn("ds-menu-list", menuClassName)}
           role={hasNativeFocusgroup ? undefined : "menu"}
           aria-labelledby={triggerId}
           {...({ focusgroup: "menu nomemory" } as Record<string, string>)}

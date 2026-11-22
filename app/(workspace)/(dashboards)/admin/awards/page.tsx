@@ -50,13 +50,8 @@ async function AwardsContent({
   return (
     <main
       id="main-content"
-      className="flex-1 bg-[#FFFDFC] px-4 py-10 sm:px-6 sm:py-14">
-      <div className="mx-auto max-w-275">
-        <Link
-          href="/admin"
-          className="text-sm font-semibold text-ceda-burgundy underline underline-offset-4">
-          ← Back to administration
-        </Link>
+      className="flex-1 bg-[#FFFDFC] px-gutter py-ds-6 sm:py-ds-8">
+      <div className="mx-auto w-full max-w-(--container-workspace)">
         <header className="mt-5">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-ceda-burgundy">
             Recognition

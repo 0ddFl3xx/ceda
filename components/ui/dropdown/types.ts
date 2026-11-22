@@ -74,4 +74,6 @@ export interface DropdownMenuProps {
   align?: "start" | "end";
   items: readonly DropdownMenuItem[];
   className?: string;
+  triggerClassName?: string;
+  menuClassName?: string;
 }

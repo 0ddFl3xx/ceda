@@ -73,14 +73,9 @@ async function AdminDocumentsContent({
   return (
     <main
       id="main-content"
-      className="flex-1 bg-[#FFFDFC] px-4 py-10 sm:px-6 sm:py-14">
-      <div className="mx-auto max-w-250">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link
-            href="/admin"
-            className="text-sm font-semibold text-ceda-burgundy underline underline-offset-4">
-            ← Back to administration
-          </Link>
+      className="flex-1 bg-[#FFFDFC] px-gutter py-ds-6 sm:py-ds-8">
+      <div className="mx-auto w-full max-w-(--container-workspace)">
+        <div className="flex flex-wrap items-center justify-between gap-3">        
           <Link
             href="/guidelines"
             className="text-sm font-semibold text-ceda-burgundy underline underline-offset-4">
