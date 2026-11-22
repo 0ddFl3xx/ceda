@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { NewCallForm } from "@/components/admin/NewCallForm";
 import { NewCallGuidePanel } from "@/components/admin/calls/NewCallGuidePanel";
 import { WorkspacePageSkeleton } from "@/components/workspace/WorkspacePageSkeleton";
+import { resolveNewCallError } from "@/lib/admin-messages";
 import { requireRole } from "@/lib/authorization";
 
 export default function NewCallPage({
@@ -20,30 +21,17 @@ async function NewCallContent({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await requireRole("admin", "/admin/calls/new");
-  const params = await searchParams;
-  const error = params.error;
-  const errorText =
-    error === "title"
-      ? "Enter a title between 3 and 255 characters."
-      : error === "slug"
-        ? "Use a slug with lowercase letters, numbers, and hyphens."
-        : error === "duplicate"
-          ? "That URL slug is already used by another call."
-          : error === "dates"
-            ? "Check the opening and closing dates; closing must be later."
-            : error
-              ? "Check the call details and try again."
-              : "";
+  const errorText = resolveNewCallError(await searchParams);
 
   return (
     <main
       id="main-content"
       className="flex-1 bg-[#F7F8F9] px-gutter py-ds-6 sm:py-ds-8"
     >
-      <div className="mx-auto w-full max-w-(--container-workspace)">       
+      <div className="mx-auto w-full max-w-(--container-workspace)">
         <h1
           id="create-call-heading"
-          className="mt-4 text-3xl font-bold text-ceda-ink"
+          className="text-3xl font-bold text-ceda-ink"
         >
           Create an innovation call
         </h1>

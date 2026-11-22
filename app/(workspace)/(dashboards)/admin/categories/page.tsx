@@ -1,14 +1,13 @@
 import { Suspense } from "react";
-import { asc } from "drizzle-orm";
+import { setCategoryActive } from "@/app/(workspace)/(dashboards)/admin/categories/actions";
 import {
   CreateCategoryForm,
   EditCategoryForm,
 } from "@/components/admin/CategoryForms";
 import { WorkspacePageSkeleton } from "@/components/workspace/WorkspacePageSkeleton";
-import { db } from "@/db";
-import { categories } from "@/db/schema";
+import { resolveCategoriesError } from "@/lib/admin-messages";
 import { requireRole } from "@/lib/authorization";
-import { setCategoryActive } from "@/app/(workspace)/(dashboards)/admin/categories/actions";
+import { loadAdminCategories } from "@/lib/server/admin-governance";
 
 export default function AdminCategoriesPage({
   searchParams,
@@ -27,25 +26,18 @@ async function CategoryContent({
 }) {
   await requireRole("admin", "/admin/categories");
   const [categoryRows, query] = await Promise.all([
-    db
-      .select()
-      .from(categories)
-      .orderBy(asc(categories.position), asc(categories.name)),
+    loadAdminCategories(),
     searchParams,
   ]);
-  const error =
-    query.error === "duplicate"
-      ? "A category with that name already exists."
-      : query.error
-        ? "Check the category name and description."
-        : "";
+  const error = resolveCategoriesError(query);
 
   return (
     <main
       id="main-content"
-      className="flex-1 bg-white px-gutter py-ds-6 sm:py-ds-8">
+      className="flex-1 bg-white px-gutter py-ds-6 sm:py-ds-8"
+    >
       <div className="mx-auto w-full max-w-(--container-workspace)">
-        <header className="mt-5">
+        <header>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-ceda-burgundy">
             Portal configuration
           </p>
@@ -57,17 +49,21 @@ async function CategoryContent({
             Deactivated categories stay attached to earlier applications.
           </p>
         </header>
+
         {error ? (
           <p
             className="mt-5 rounded-xl border border-red-800/25 bg-red-50 p-4 text-sm text-red-900"
-            role="alert">
+            role="alert"
+          >
             {error}
           </p>
         ) : null}
+
         <section aria-labelledby="category-list-heading" className="mt-8">
           <h2
             id="category-list-heading"
-            className="text-xl font-bold text-ceda-ink">
+            className="text-xl font-bold text-ceda-ink"
+          >
             Current categories
           </h2>
           {categoryRows.length ? (
@@ -77,13 +73,15 @@ async function CategoryContent({
                   key={category.id}
                   className={`rounded-2xl border border-ceda-line p-5 ${
                     category.isActive ? "bg-white" : "bg-[#F7F8F9]"
-                  }`}>
+                  }`}
+                >
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <h3 className="font-bold text-ceda-ink">{category.name}</h3>
                     <span
                       className={`text-xs font-semibold ${
                         category.isActive ? "text-green-800" : "text-ceda-muted"
-                      }`}>
+                      }`}
+                    >
                       {category.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
@@ -105,7 +103,8 @@ async function CategoryContent({
                     />
                     <button
                       type="submit"
-                      className="inline-flex min-h-12 items-center rounded-full border border-ceda-line px-5 text-sm font-semibold text-ceda-burgundy">
+                      className="inline-flex min-h-12 items-center rounded-full border border-ceda-line px-5 text-sm font-semibold text-ceda-burgundy"
+                    >
                       {category.isActive ? "Deactivate" : "Activate"}
                     </button>
                   </form>
@@ -118,12 +117,15 @@ async function CategoryContent({
             </p>
           )}
         </section>
+
         <section
           aria-labelledby="new-category-heading"
-          className="mt-8 rounded-2xl border border-ceda-line bg-[#FFF9F4] p-6 sm:p-8">
+          className="mt-8 rounded-2xl border border-ceda-line bg-[#FFF9F4] p-6 sm:p-8"
+        >
           <h2
             id="new-category-heading"
-            className="text-xl font-bold text-ceda-ink">
+            className="text-xl font-bold text-ceda-ink"
+          >
             Add a category
           </h2>
           <CreateCategoryForm />
