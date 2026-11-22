@@ -1488,16 +1488,15 @@ dialog.ds-drawer::backdrop {
 }
 
 .site-menu-button {
-  anchor-name: --site-menu-trigger;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-inline-size: 5.75rem;
-  min-block-size: 2.75rem;
+  min-inline-size: 5.5rem;
+  min-block-size: 2.625rem;
   padding-inline: 0.95rem;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(122, 31, 20, 0.18);
+  border: 1px solid rgba(122, 31, 20, 0.16);
   background-color: var(--ceda-cream-start);
   color: var(--ceda-text-main);
   font-size: 0.875rem;
@@ -1509,7 +1508,7 @@ dialog.ds-drawer::backdrop {
 }
 
 .site-menu-button:hover {
-  border-color: rgba(122, 31, 20, 0.36);
+  border-color: rgba(122, 31, 20, 0.34);
   background-color: var(--ceda-cream-mid);
   color: var(--ceda-burgundy);
 }
@@ -1519,64 +1518,103 @@ dialog.ds-drawer::backdrop {
   outline-offset: 2px;
 }
 
-/* Narrow layout: Native Popover anchored beneath the Menu button */
+/* Desktop inline menu (hidden in narrow mode where the modal <dialog> drawer is used) */
 .site-menu {
-  position: fixed;
-  inset: auto;
-  /* Static fallback offset for browsers without CSS anchor(); overridden below when supported */
-  inset-block-start: 4.85rem;
-  inset-block-start: anchor(--site-menu-trigger bottom);
-  inset-inline-end: var(--space-gutter);
-  inline-size: min(86dvw, 22rem);
-  max-inline-size: calc(100dvw - 2 * var(--space-gutter));
-  block-size: fit-content;
-  max-block-size: calc(100dvh - 6rem);
-  margin: 0;
-  margin-block-start: 0.5rem;
-  padding: 0.625rem;
-  border: 1px solid rgba(122, 31, 20, 0.16);
-  border-radius: 1.25rem;
-  background-color: var(--background);
-  color: var(--ceda-text-main);
-  box-shadow: 0 22px 54px -12px rgba(51, 31, 23, 0.22);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  display: none;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.site-menu::backdrop {
-  background-color: rgba(46, 27, 20, 0.26);
-  backdrop-filter: blur(2px);
+/* Mobile Navigation Drawer: native modal <dialog> with CSS scroll-snap swipe-to-dismiss */
+.site-drawer {
+  --drawer-width: min(21rem, 84dvw, 100dvw - 24px);
+  --drawer-backdrop: 0;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  overflow: visible;
 }
 
-.site-menu:not(:is(:popover-open, .\:popover-open, [data-popover-open="true"])) {
+.site-drawer::backdrop {
+  background-color: #2E1B14;
+  opacity: calc(var(--drawer-backdrop) * 0.48);
+}
+
+.site-drawer-scroller {
+  position: relative;
+  display: grid;
+  grid-template-columns: 100% var(--drawer-width);
+  overflow-x: scroll;
+  overscroll-behavior: none;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.site-drawer-scroller::-webkit-scrollbar,
+.site-drawer-body::-webkit-scrollbar {
   display: none;
 }
 
-.site-menu:is(:popover-open, .\:popover-open, [data-popover-open="true"]) {
-  display: grid;
-  gap: 0.25rem;
+@media (prefers-reduced-motion: no-preference) {
+  .site-drawer-scroller {
+    scroll-behavior: smooth;
+  }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .site-menu {
-    opacity: 0;
-    translate: 0 -0.35rem;
-    transition:
-      opacity 180ms var(--ease-standard),
-      translate 180ms var(--ease-standard),
-      display 180ms,
-      overlay 180ms;
-    transition-behavior: allow-discrete;
+.site-drawer-scroller::before {
+  content: "";
+  scroll-snap-align: start;
+  scroll-initial-target: nearest;
+}
+
+.site-drawer-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  background-color: var(--background);
+  color: var(--ceda-text-main);
+  border-inline-start: 1px solid rgba(122, 31, 20, 0.12);
+  box-shadow: -18px 0 48px -12px rgba(46, 27, 20, 0.24);
+  overflow: clip;
+  scroll-snap-align: end;
+}
+
+.site-drawer-body {
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+@property --drawer-backdrop {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Tie drawer ::backdrop opacity directly to swipe/scroll position (gated with @supports) */
+@supports (animation-timeline: scroll()) {
+  .site-drawer {
+    timeline-scope: --site-drawer-fade;
+    animation: fade-site-drawer-backdrop linear both;
+    animation-timeline: --site-drawer-fade;
   }
 
-  .site-menu:is(:popover-open, .\:popover-open, [data-popover-open="true"]) {
-    opacity: 1;
-    translate: 0 0;
+  .site-drawer-scroller {
+    scroll-timeline: --site-drawer-fade x;
+  }
 
-    @starting-style {
-      opacity: 0;
-      translate: 0 -0.35rem;
+  @keyframes fade-site-drawer-backdrop {
+    0% {
+      --drawer-backdrop: 0;
+    }
+    100% {
+      --drawer-backdrop: 1;
     }
   }
 }
@@ -1585,14 +1623,13 @@ dialog.ds-drawer::backdrop {
   position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.5rem;
-  inline-size: 100%;
   min-block-size: 2.75rem;
-  padding-inline: 0.875rem;
-  border-radius: 0.75rem;
+  padding-inline: 0.75rem;
+  border-radius: 0.5rem;
   color: var(--ceda-text-body);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   transition:
@@ -1602,7 +1639,6 @@ dialog.ds-drawer::backdrop {
 
 .site-nav-link:hover {
   color: var(--ceda-burgundy);
-  background-color: var(--ceda-cream-start);
 }
 
 .site-nav-link:focus-visible {
@@ -1612,17 +1648,17 @@ dialog.ds-drawer::backdrop {
 
 .site-nav-link[aria-current="page"] {
   color: var(--ceda-burgundy);
-  background-color: transparent;
   font-weight: 600;
 }
 
 .site-nav-link[aria-current="page"]::after {
   content: "";
-  inline-size: 0.3125rem;
-  block-size: 0.3125rem;
+  position: absolute;
+  inset-inline: 0.75rem;
+  inset-block-end: 0.45rem;
+  block-size: 2px;
   border-radius: 9999px;
   background-color: var(--ceda-burgundy);
-  flex-shrink: 0;
 }
 
 .site-header-actions {
@@ -1631,7 +1667,7 @@ dialog.ds-drawer::backdrop {
   gap: 0.625rem;
 }
 
-/* Wide layout: inline navigation bar using the same semantic <ul> */
+/* Wide layout: inline navigation bar */
 .site-header.is-wide .site-menu-button {
   display: none;
 }
@@ -1640,62 +1676,10 @@ dialog.ds-drawer::backdrop {
   display: flex;
 }
 
-.site-header.is-wide .site-menu-mobile-only {
-  display: none;
-}
-
 .site-header.is-wide .site-menu {
-  position: static;
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  inline-size: auto;
-  max-inline-size: none;
-  block-size: auto;
-  max-block-size: none;
-  overflow: visible;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  opacity: 1;
-  translate: none;
-  transition: none;
-}
-
-.site-header.is-wide .site-menu::backdrop {
-  display: none;
-}
-
-.site-header.is-wide .site-nav-link {
-  inline-size: auto;
-  justify-content: center;
-  padding-inline: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.site-header.is-wide .site-nav-link:hover {
-  background-color: transparent;
-  color: var(--ceda-burgundy);
-}
-
-.site-header.is-wide .site-nav-link[aria-current="page"] {
-  background-color: transparent;
-  box-shadow: none;
-  color: var(--ceda-burgundy);
-}
-
-.site-header.is-wide .site-nav-link[aria-current="page"]::after {
-  position: absolute;
-  inset-inline: 0.75rem;
-  inset-block-end: 0.45rem;
-  inline-size: auto;
-  block-size: 2px;
-  border-radius: 9999px;
-  background-color: var(--ceda-burgundy);
 }
 
 @media (forced-colors: active) {
@@ -1907,7 +1891,7 @@ dialog.ds-drawer::backdrop {
     animation: bentoCheckPop3 6.4s ease-out infinite;
   }
 
-  /* 2. Fair Review card: scanning rubric sweep + sequential bar & check fills */
+  /* 2. Fair Review card: scanning rubric sweep + sequential bar fills */
   .benefits-bento-grid .bento-review-scan {
     animation: bentoReviewScan 6.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
@@ -1922,26 +1906,13 @@ dialog.ds-drawer::backdrop {
     animation: bentoRubricFill3 6.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
 
-  .benefits-bento-grid .bento-check-1 {
-    animation: bentoCheckPop1 6.6s ease-out infinite;
-  }
-  .benefits-bento-grid .bento-check-2 {
-    animation: bentoCheckPop2 6.6s ease-out infinite;
-  }
-  .benefits-bento-grid .bento-check-3 {
-    animation: bentoCheckPop3 6.6s ease-out infinite;
-  }
-
   .benefits-bento-grid .bento-score-badge {
     animation: bentoScorePulse 6.6s ease-out infinite;
   }
 
-  /* 3. Feedback Loop card: reviewer note -> progress dot -> v2 ready */
+  /* 3. Feedback Loop card: reviewer note -> v2 ready */
   .benefits-bento-grid .bento-feedback-note {
     animation: bentoFeedbackNote 6.4s ease-in-out infinite;
-  }
-  .benefits-bento-grid .bento-feedback-dot {
-    animation: bentoFeedbackDot 6.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
   .benefits-bento-grid .bento-feedback-fill {
     animation: bentoFeedbackFill 6.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
@@ -2174,29 +2145,6 @@ dialog.ds-drawer::backdrop {
   55% {
     transform: translateY(0);
     opacity: 0.85;
-  }
-}
-
-@keyframes bentoFeedbackDot {
-  0%, 24% {
-    opacity: 0;
-    transform: translate(0, 10px) scale(0.7);
-  }
-  32% {
-    opacity: 1;
-    transform: translate(4px, 0) scale(1);
-  }
-  44% {
-    opacity: 1;
-    transform: translate(12px, -3px) scale(1.05);
-  }
-  54% {
-    opacity: 1;
-    transform: translate(20px, 5px) scale(0.95);
-  }
-  62%, 100% {
-    opacity: 0;
-    transform: translate(22px, 7px) scale(0.6);
   }
 }
 

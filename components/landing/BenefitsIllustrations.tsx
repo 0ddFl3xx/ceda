@@ -154,7 +154,6 @@ const RUBRIC_CRITERIA = [
     widthClass: "w-[92%]",
     barClass: "bg-[#7A1F14]",
     animClass: "bento-rubric-1",
-    checkClass: "bento-check-1",
   },
   {
     label: "Customer need",
@@ -162,7 +161,6 @@ const RUBRIC_CRITERIA = [
     widthClass: "w-[88%]",
     barClass: "bg-[#E8710A]",
     animClass: "bento-rubric-2",
-    checkClass: "bento-check-2",
   },
   {
     label: "Botswana impact",
@@ -170,7 +168,6 @@ const RUBRIC_CRITERIA = [
     widthClass: "w-[95%]",
     barClass: "bg-[#7A1F14]",
     animClass: "bento-rubric-3",
-    checkClass: "bento-check-3",
   },
 ] as const;
 
@@ -215,13 +212,8 @@ export function FairReviewIllustration() {
           >
             <div className="flex items-center justify-between gap-2 text-[11px]">
               <span className="font-semibold text-[#331F17]">{item.label}</span>
-              <span className="inline-flex items-center gap-1 font-mono font-bold text-[#7A1F14] tabular-nums">
+              <span className="font-mono font-bold text-[#7A1F14] tabular-nums">
                 {item.score}
-                <span
-                  className={`bento-rubric-check ${item.checkClass} inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#E8F5ED] text-[#14532D]`}
-                >
-                  <Check className="block h-2.5 w-2.5 stroke-[2.8]" />
-                </span>
               </span>
             </div>
 
@@ -243,7 +235,7 @@ export function FeedbackLoopIllustration() {
       aria-hidden="true"
       className="bento-stage relative flex min-h-52 flex-col justify-center overflow-clip rounded-xl border border-[#7A1F14]/10 bg-[#FFF9F4] p-3.5 sm:p-4"
     >
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1.5 sm:gap-2.5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-0">
         {/* v1 Application Draft */}
         <div className="relative rounded-xl border border-[#7A1F14]/12 bg-white p-2.5 shadow-[0_6px_18px_rgba(51,31,23,0.04)] sm:p-3">
           <div className="flex flex-wrap items-center justify-between gap-1">
@@ -271,30 +263,31 @@ export function FeedbackLoopIllustration() {
           </div>
         </div>
 
-        {/* Curved Flow Connector */}
-        <div className="relative flex flex-col items-center justify-center">
+        {/* Crisp Horizontal Flow Connector */}
+        <div className="relative flex w-8 items-center justify-center sm:w-11">
           <svg
-            viewBox="0 0 36 44"
+            viewBox="0 0 44 20"
             fill="none"
-            className="block h-10 w-7 text-[#E8710A] sm:h-11 sm:w-9"
+            className="block h-5 w-full"
           >
-            <path
-              d="M4 26 C11 10, 24 10, 31 20"
-              stroke="currentColor"
-              strokeWidth="1.8"
+            <line
+              x1="0"
+              y1="10"
+              x2="38"
+              y2="10"
+              stroke="#7A1F14"
+              strokeOpacity="0.26"
+              strokeWidth="1.6"
               strokeLinecap="round"
-              strokeDasharray="3 3"
-              opacity="0.65"
             />
             <path
-              d="M27.5 16.5 L31.5 20.5 L26.5 22.5"
-              stroke="currentColor"
-              strokeWidth="1.8"
+              d="M33.5 5.5 L39 10 L33.5 14.5"
+              stroke="#E8710A"
+              strokeWidth="1.7"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          <div className="bento-feedback-dot absolute left-1.5 top-2.5 h-2 w-2 rounded-full bg-[#E8710A] shadow-[0_0_8px_rgba(232,113,10,0.65)] sm:left-2 sm:top-3" />
         </div>
 
         {/* v2 Improved Application */}
