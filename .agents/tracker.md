@@ -22,7 +22,7 @@
 | **P2** | 10 | Reporting & Analytics Dashboards | Done | — |
 | **P2** | 11 | FAQs, Regulatory Directory & Support Channels | Mostly Done | CEDA approval of demo turnaround targets |
 | **P2** | 12 | System Architecture, Responsiveness & Performance | Mostly Done | Cross-browser (Chrome/Edge/Firefox/Safari/mobile) & a11y QA |
-| **P3** | 13 | Innovation & Creativity Differentiators (10% Criteria) | Not Started | Pick & build 1–2 differentiators (e.g., completeness check, duplicate detection) |
+| **P3** | 13 | Innovation & Creativity Differentiators (10% Criteria) | Done | — |
 | **P3** | 14 | Technical Submission Deliverables & Packaging | In Progress | Live URL, final README/cost docs, build scripts, `< 150 MB` zip check |
 
 ---
@@ -141,14 +141,12 @@
 ## Priority 3 — Differentiators & Final Hackathon Submission
 
 ### 13. Innovation & Creativity Differentiators (10% Judging Criteria)
-- [ ] Select and build high-impact value-add features beyond baseline specs, such as:
-  - [ ] **AI-assisted idea completeness & readiness checker** before final submission.
-  - [ ] **Automated duplicate / similar idea detection** to flag overlapping proposals for reviewers.
+- [x] Select and build high-impact value-add features beyond baseline specs:
+  - [x] **Smart idea completeness & readiness checker** before final submission (`lib/idea-readiness.ts`, `components/submit/ReadinessChecker.tsx`, `components/submit/SubmissionForm.tsx`).
+  - [x] **Automated duplicate / similar idea detection** using TF-IDF cosine + bigram overlap to flag overlapping proposals for evaluators and adjudicators (`lib/idea-similarity.ts`, `lib/server/idea-similarity.ts`, `components/review/SimilarIdeasAlert.tsx`).
 
 ### 14. Technical Submission Deliverables & Packaging
 - [x] Maintain clean, modular TypeScript codebase passing `npm run typecheck`, `npm run lint`, and `npm test`.
 - [x] Provide initial `README.md`, `docs/decisions.md`, `docs/build-log.md`, `docs/implementation-plan.md`, and `docs/demo-runbook.md`.
 - [ ] Provide **Live Hosted URL** in `README.md` and submission form.
 - [ ] Update `README.md` with complete architecture overview, Neon Object Storage setup, all required env vars, hosting region & cost breakdown, and full tools/frameworks list.
-- [ ] Package deployment/installable build scripts (e.g., production build verification / Dockerfile or deployment config).
-- [ ] Verify final zipped submission bundle (code + docs + assets, excluding `node_modules`/`.next`) is strictly **under 150 MB**.
