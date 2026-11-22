@@ -19,7 +19,7 @@
 | **P1** | 7 | Live Support Chat System | Done | — |
 | **P1** | 8 | Admin Content, Form & Criteria Management | Done | — |
 | **P1** | 9 | Audit Trail & Data Protection Compliance (DPA 2024) | Mostly Done | Legal review sign-off, `timestamptz` cleanup |
-| **P2** | 10 | Reporting & Analytics Dashboards | In Progress | Visual charts, exportable reports, stage turnaround times, chat & demographic metrics |
+| **P2** | 10 | Reporting & Analytics Dashboards | Done | — |
 | **P2** | 11 | FAQs, Regulatory Directory & Support Channels | Mostly Done | CEDA approval of demo turnaround targets |
 | **P2** | 12 | System Architecture, Responsiveness & Performance | Mostly Done | Cross-browser (Chrome/Edge/Firefox/Safari/mobile) & a11y QA |
 | **P3** | 13 | Innovation & Creativity Differentiators (10% Criteria) | Not Started | Pick & build 1–2 differentiators (e.g., completeness check, duplicate detection) |
@@ -116,10 +116,10 @@
 
 ### 10. Reporting & Analytics Dashboards
 - [x] Build initial protected `/admin/reports` page displaying aggregate submission totals, status outcomes, call participation, and evaluator workload (`app/(dashboards)/admin/reports/page.tsx`).
-- [ ] Add visual charts (bar/line/funnel charts) for executive and operational dashboards.
-- [ ] Add exportable report downloads (CSV / PDF).
-- [ ] Add participation metrics by sector/category and applicant demographic.
-- [ ] Add stage conversion rates and average turnaround timelines per workflow stage.
+- [x] Add visual charts (bar/line/funnel/donut charts via Recharts) for executive and operational dashboards (`components/admin/ReportsCharts.tsx`).
+- [x] Add exportable report downloads (CSV & PDF via `/api/admin/reports/export` plus print view) (`app/api/admin/reports/export/route.ts`, `lib/server/report-pdf.ts`).
+- [x] Add participation metrics by sector/category and applicant demographic (`lib/reports-analytics.ts`, `lib/server/reports-service.ts`).
+- [x] Add stage conversion rates and average turnaround timelines per workflow stage (`lib/reports-analytics.ts`, `components/admin/ReportsCharts.tsx`).
 - [x] Add live support chat analytics and support statistics to the reporting dashboard (`app/(workspace)/(dashboards)/admin/reports/page.tsx`).
 
 ### 11. FAQs, Regulatory Directory & Support Channels
