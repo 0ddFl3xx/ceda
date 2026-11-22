@@ -86,14 +86,12 @@
 - [x] Implement notification channel preferences (in-portal, email, SMS) with preference-gate enforcement and unit tests (`app/(account)/account/settings/*`, `lib/server/notifications.test.ts`).
 - [x] Wire automated email notification dispatch via Gmail SMTP when configured and user opts in (`lib/server/notifications.ts`).
 - [ ] Build the `/track` submission reference lookup & visual pipeline tracker page (currently a `PageStub` in `app/(submissions)/track/page.tsx`).
-- [ ] Connect SMS alert delivery (optional/deferred if email + in-app satisfies free alerts).
 
 ### 7. Live Support Chat System
 - [x] Build persistent multi-user live chat modal for applicants (`components/landing/LiveChatModal.tsx`, `app/api/chat/route.ts`).
 - [x] Build consultant chat queue supporting multiple concurrent chats and multiple online consultants (`app/(dashboards)/consultant/page.tsx`, `components/consultant/ChatQueue.tsx`).
 - [x] Enforce weekday business-hours logic (`09:00–16:00 CAT`, `Africa/Gaborone`) with automated offline/queued fallback banner.
 - [x] Add chat rate limiting, origin validation, notifications, and audit logging.
-- [ ] Add Botswana public holiday awareness to business-hours availability checks.
 - [ ] Add explicit automated "all agents busy" fallback messaging when consultants are at capacity during office hours.
 - [ ] Ensure assigned consultants reliably retain/view their active conversations across page refreshes.
 - [ ] Implement chat analytics tracking (chat volume, wait/response times, and resolution metrics).
