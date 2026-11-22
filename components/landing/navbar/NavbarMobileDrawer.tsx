@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense, type RefObject } from "react";
 import { Bell, LogOut, Settings, UserRound, X } from "lucide-react";
+import { useNotificationsModal } from "@/components/notifications/NotificationsModalContext";
 import {
   ActiveDrawerNavigationLink,
   DrawerNavigationLink,
@@ -33,6 +34,7 @@ export function NavbarMobileDrawer({
   onClose,
   onSignOut,
 }: NavbarMobileDrawerProps) {
+  const { openNotifications } = useNotificationsModal();
   const userName = user?.name || "Portal account";
   const userEmail = user?.email || "";
 
@@ -138,17 +140,21 @@ export function NavbarMobileDrawer({
                     />
                     <span>My profile</span>
                   </Link>
-                  <Link
-                    href="/notifications"
-                    onClick={onClose}
-                    className="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-ceda-body transition-colors hover:bg-ceda-cream hover:text-ceda-burgundy focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    onClick={() => {
+                      onClose();
+                      openNotifications();
+                    }}
+                    className="group flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium text-ceda-body transition-colors hover:bg-ceda-cream hover:text-ceda-burgundy focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
                   >
                     <Bell
                       aria-hidden="true"
                       className="h-4 w-4 shrink-0 text-ceda-muted transition-colors group-hover:text-ceda-burgundy"
                     />
                     <span>Notifications</span>
-                  </Link>
+                  </button>
                   <Link
                     href="/account/settings"
                     onClick={onClose}

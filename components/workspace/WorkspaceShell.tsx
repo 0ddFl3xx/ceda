@@ -9,6 +9,7 @@ import type { PortalRole } from "@/lib/authorization";
 import { cn } from "@/lib/cn";
 import { buildWorkspaceBreadcrumbs, getNavigationForRoles } from "@/lib/navigation";
 import { GlobalSupportActions } from "@/components/GlobalSupportActions";
+import { useNotificationsModal } from "@/components/notifications/NotificationsModalContext";
 import { WorkspaceSidebar, type WorkspaceUserSummary } from "./WorkspaceSidebar";
 import { WorkspaceTopBar } from "./WorkspaceTopBar";
 import { useSwipeDrawer } from "./useSwipeDrawer";
@@ -36,15 +37,18 @@ export function WorkspaceShell({
 
   const { drawerRef, scrollerRef, sheetRef, drawerOpen, openDrawer, closeDrawer } =
     useSwipeDrawer(pathname);
+  const { openNotifications, unreadCount: liveUnreadCount } =
+    useNotificationsModal();
+  const effectiveUnreadCount = liveUnreadCount ?? unreadNotifications;
 
-  const groups = getNavigationForRoles(roles, unreadNotifications);
+  const groups = getNavigationForRoles(roles, effectiveUnreadCount);
   const breadcrumbs = buildWorkspaceBreadcrumbs(pathname);
   const resolvedSectionLabel =
     sectionLabel ??
     (pathname === "/profile" || pathname === "/notifications" || pathname.startsWith("/account")
       ? "Account"
       : pathname.startsWith("/admin")
-        ? "Governance"
+        ? "Admin Portal"
         : "Workspace");
 
   const isSubmitterOnly =
@@ -82,6 +86,7 @@ export function WorkspaceShell({
           collapsed={collapsed}
           user={user}
           roles={roles}
+          onOpenNotifications={openNotifications}
           onSignOut={() => void handleSignOut()}
           signingOut={signingOut}
           headerAction={
@@ -118,6 +123,7 @@ export function WorkspaceShell({
               user={user}
               roles={roles}
               onNavigate={closeDrawer}
+              onOpenNotifications={openNotifications}
               onSignOut={() => void handleSignOut()}
               signingOut={signingOut}
               headerAction={
@@ -142,10 +148,11 @@ export function WorkspaceShell({
           drawerId={drawerId}
           drawerOpen={drawerOpen}
           onOpenDrawer={() => void openDrawer()}
+          onOpenNotifications={openNotifications}
           sectionLabel={resolvedSectionLabel}
           breadcrumbs={breadcrumbs}
           primaryAction={primaryAction}
-          unreadNotifications={unreadNotifications}
+          unreadNotifications={effectiveUnreadCount}
           user={user}
         />
 

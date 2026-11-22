@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Bell, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { useNotificationsModal } from "@/components/notifications/NotificationsModalContext";
 import { hasNativePopover, positionAccountFallback } from "./nav-items";
 
 interface NavbarAccountMenuProps {
@@ -20,6 +21,7 @@ export function NavbarAccountMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [accountOpen, setAccountOpen] = useState(false);
+  const { openNotifications } = useNotificationsModal();
 
   const closeAccountPanel = useCallback(() => {
     const panel = popoverRef.current;
@@ -160,14 +162,18 @@ export function NavbarAccountMenu({
             <UserRound aria-hidden="true" className="h-4 w-4 text-ceda-muted" />
             <span>My profile</span>
           </Link>
-          <Link
-            href="/notifications"
-            onClick={closeAccountPanel}
-            className="flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-ceda-body transition hover:bg-ceda-cream hover:text-ceda-burgundy focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => {
+              closeAccountPanel();
+              openNotifications();
+            }}
+            className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium text-ceda-body transition hover:bg-ceda-cream hover:text-ceda-burgundy focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
           >
             <Bell aria-hidden="true" className="h-4 w-4 text-ceda-muted" />
             <span>Notifications</span>
-          </Link>
+          </button>
           <Link
             href="/account/settings"
             onClick={closeAccountPanel}

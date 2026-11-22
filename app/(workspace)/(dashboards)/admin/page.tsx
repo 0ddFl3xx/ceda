@@ -3,6 +3,7 @@ import { AdminCallsLedger } from "@/components/admin/overview/AdminCallsLedger";
 import { AdminKpiStrip } from "@/components/admin/overview/AdminKpiStrip";
 import { AdminOperationsPanel } from "@/components/admin/overview/AdminOperationsPanel";
 import { AdminOverviewHeader } from "@/components/admin/overview/AdminOverviewHeader";
+import { AdminPipelineSnapshot } from "@/components/admin/overview/AdminPipelineSnapshot";
 import { AdminRecentActivity } from "@/components/admin/overview/AdminRecentActivity";
 import { WorkspacePageSkeleton } from "@/components/workspace/WorkspacePageSkeleton";
 import { requireRole } from "@/lib/authorization";
@@ -26,26 +27,22 @@ async function AdminContent() {
 
       <div className="mx-auto max-w-(--container-workspace) space-y-ds-6 px-gutter py-ds-6 sm:py-ds-8">
         <AdminKpiStrip
-          calls={data.calls}
           openCallsCount={data.openCallsCount}
-          draftCallsCount={data.draftCallsCount}
           activePipelineCount={data.activePipelineCount}
-          awardsCount={data.awardsCount}
-          totalSubmissions={data.totalSubmissions}
           pendingReviewsCount={data.pendingReviewsCount}
-          openChatsCount={data.openChatsCount}
-          changesRequestedCount={data.changesRequestedCount}
           totalUsersCount={data.totalUsersCount}
-          staffUsersCount={data.staffUsersCount}
         />
 
         <div className="grid items-start gap-ds-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(20rem,1fr)]">
-          <AdminCallsLedger
-            calls={data.calls}
-            openCallsCount={data.openCallsCount}
-          />
+          <div className="min-w-0 space-y-ds-6">
+            <AdminCallsLedger
+              calls={data.calls}
+              openCallsCount={data.openCallsCount}
+            />
+            <AdminRecentActivity entries={data.recentAudit} />
+          </div>
 
-          <aside aria-label="Portal operations and recent activity" className="space-y-ds-6">
+          <aside aria-label="Portal operations and submission pipeline" className="space-y-ds-6">
             <AdminOperationsPanel
               totalUsersCount={data.totalUsersCount}
               activePipelineCount={data.activePipelineCount}
@@ -55,7 +52,10 @@ async function AdminContent() {
               publishedDocumentsCount={data.publishedDocumentsCount}
               publishedPagesCount={data.publishedPagesCount}
             />
-            <AdminRecentActivity entries={data.recentAudit} />
+            <AdminPipelineSnapshot
+              breakdown={data.pipelineBreakdown}
+              totalSubmissions={data.totalSubmissions}
+            />
           </aside>
         </div>
       </div>

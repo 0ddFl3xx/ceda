@@ -18,7 +18,7 @@ export function WorkspacePageSkeleton({
       id="main-content"
       aria-busy="true"
       aria-label="Loading workspace content"
-      className="ds-skeleton-delay flex-1 bg-[#F7F8F9] px-gutter py-ds-8"
+      className="ds-skeleton-delay flex-1 bg-neutral-50 px-gutter py-ds-8"
     >
       <div
         className={
@@ -76,7 +76,7 @@ export function WorkspacePageSkeleton({
         ) : null}
 
         {variant === "form" ? (
-          <div className="space-y-ds-5 rounded-card border border-ceda-line bg-white p-card">
+          <div className="space-y-ds-5 rounded-card border border-neutral-200 bg-white p-card">
             <Skeleton variant="text" className="h-5 w-40" />
             <Skeleton variant="rect" className="h-12 rounded-control" />
             <Skeleton variant="rect" className="h-12 rounded-control" />

@@ -8,7 +8,17 @@ const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-BW", {
   timeZone: "Africa/Gaborone",
 });
 
+const FRIENDLY_ACTIONS: Record<string, string> = {
+  "auth.session.created": "Signed in",
+  "account.registered": "Account registered",
+  "idea.submitted": "Idea submitted",
+  "evaluation.scored": "Evaluation scored",
+  "role.assigned": "Role assigned",
+};
+
 function formatAuditAction(action: string): string {
+  const mapped = FRIENDLY_ACTIONS[action];
+  if (mapped) return mapped;
   const cleaned = action.replace(/[._-]+/g, " ").trim();
   if (!cleaned) return "Recorded event";
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);

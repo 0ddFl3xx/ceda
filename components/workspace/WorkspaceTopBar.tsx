@@ -11,6 +11,7 @@ interface WorkspaceTopBarProps {
   drawerId: string;
   drawerOpen: boolean;
   onOpenDrawer: () => void;
+  onOpenNotifications: () => void;
   sectionLabel: string;
   breadcrumbs: BreadcrumbCrumb[];
   primaryAction: { label: string; href: string } | null;
@@ -22,6 +23,7 @@ export function WorkspaceTopBar({
   drawerId,
   drawerOpen,
   onOpenDrawer,
+  onOpenNotifications,
   sectionLabel,
   breadcrumbs,
   primaryAction,
@@ -85,12 +87,14 @@ export function WorkspaceTopBar({
           </Link>
         ) : null}
 
-        <Link
-          href="/notifications"
+        <button
+          type="button"
+          onClick={onOpenNotifications}
+          aria-haspopup="dialog"
           aria-label={
             unreadNotifications > 0
-              ? `Notifications (${unreadNotifications} unread)`
-              : "Notifications"
+              ? `Open notifications (${unreadNotifications} unread)`
+              : "Open notifications"
           }
           className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-ceda-line bg-white text-ceda-body transition hover:bg-ceda-cream hover:text-ceda-burgundy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
         >
@@ -101,7 +105,7 @@ export function WorkspaceTopBar({
               className="absolute right-2 top-2 h-2 w-2 rounded-full bg-ceda-orange ring-2 ring-white"
             />
           ) : null}
-        </Link>
+        </button>
 
         {user ? (
           <Link

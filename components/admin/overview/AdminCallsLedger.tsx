@@ -143,10 +143,6 @@ export function AdminCallsLedger({
                         <dt className="text-ceda-muted">Form fields</dt>
                         <dd className="font-bold tabular-nums text-ceda-ink">{call.fieldCount}</dd>
                       </div>
-                      <div className="flex items-baseline gap-1.5">
-                        <dt className="sr-only">Call slug</dt>
-                        <dd className="font-mono text-[11px] text-ceda-muted">/{call.slug}</dd>
-                      </div>
                     </dl>
                   </div>
 

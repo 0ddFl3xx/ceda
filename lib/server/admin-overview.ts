@@ -43,6 +43,15 @@ export interface AdminAuditItem {
   createdAt: Date;
 }
 
+export interface AdminPipelineBreakdown {
+  drafts: number;
+  submitted: number;
+  inReview: number;
+  changesRequested: number;
+  approved: number;
+  awarded: number;
+}
+
 export interface AdminOverviewData {
   calls: AdminCallSummary[];
   openCallsCount: number;
@@ -50,6 +59,7 @@ export interface AdminOverviewData {
   totalSubmissions: number;
   activePipelineCount: number;
   changesRequestedCount: number;
+  pipelineBreakdown: AdminPipelineBreakdown;
   pendingReviewsCount: number;
   totalUsersCount: number;
   staffUsersCount: number;
@@ -174,11 +184,25 @@ export async function loadAdminOverviewData(): Promise<AdminOverviewData> {
   const submissionsByCall = new Map<string, { total: number; inPipeline: number }>();
   let totalSubmissions = 0;
   let activePipelineCount = 0;
-  let changesRequestedCount = 0;
+  const pipelineBreakdown: AdminPipelineBreakdown = {
+    drafts: 0,
+    submitted: 0,
+    inReview: 0,
+    changesRequested: 0,
+    approved: 0,
+    awarded: 0,
+  };
 
   for (const row of ideaCountsByCallAndStatus) {
     const qty = Number(row.total);
     totalSubmissions += qty;
+
+    if (row.status === "draft") pipelineBreakdown.drafts += qty;
+    else if (row.status === "submitted") pipelineBreakdown.submitted += qty;
+    else if (row.status === "in_review") pipelineBreakdown.inReview += qty;
+    else if (row.status === "changes_requested") pipelineBreakdown.changesRequested += qty;
+    else if (row.status === "approved") pipelineBreakdown.approved += qty;
+    else if (row.status === "awarded") pipelineBreakdown.awarded += qty;
 
     const isPipeline =
       row.status === "submitted" ||
@@ -186,13 +210,14 @@ export async function loadAdminOverviewData(): Promise<AdminOverviewData> {
       row.status === "changes_requested";
 
     if (isPipeline) activePipelineCount += qty;
-    if (row.status === "changes_requested") changesRequestedCount += qty;
 
     const current = submissionsByCall.get(row.callId) ?? { total: 0, inPipeline: 0 };
     current.total += qty;
     if (isPipeline) current.inPipeline += qty;
     submissionsByCall.set(row.callId, current);
   }
+
+  const changesRequestedCount = pipelineBreakdown.changesRequested;
 
   const fieldsByCall = new Map(
     activeFieldCountsByCall.map((row) => [row.callId, Number(row.total)]),
@@ -220,6 +245,7 @@ export async function loadAdminOverviewData(): Promise<AdminOverviewData> {
     totalSubmissions,
     activePipelineCount,
     changesRequestedCount,
+    pipelineBreakdown,
     pendingReviewsCount: Number(pendingAssignmentRow[0]?.total ?? 0),
     totalUsersCount: Number(totalUsersRow[0]?.total ?? 0),
     staffUsersCount: Number(staffUsersRow[0]?.total ?? 0),

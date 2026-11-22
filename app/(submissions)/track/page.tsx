@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowRight, Bell, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { OpenNotificationsButton } from "@/components/notifications/OpenNotificationsButton";
 import { TrackedSubmissionDetails } from "@/components/track/TrackedSubmissionDetails";
 import { TrackLookupCard } from "@/components/track/TrackLookupCard";
 import { TrackSignInGate } from "@/components/track/TrackSignInGate";
@@ -97,13 +98,7 @@ async function TrackContent({
                 <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
               </Link>
             )}
-            <Link
-              href="/notifications"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ceda-line bg-white px-4 text-xs font-semibold text-ceda-ink transition hover:bg-ceda-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ceda-orange"
-            >
-              <Bell aria-hidden="true" className="h-3.5 w-3.5 text-ceda-burgundy" />
-              Notification inbox
-            </Link>
+            <OpenNotificationsButton label="Notification inbox" />
           </div>
         </header>
 

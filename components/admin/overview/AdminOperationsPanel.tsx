@@ -39,7 +39,7 @@ function OperationList({ items }: { items: OperationLinkItem[] }) {
           <li key={item.href}>
             <Link
               href={item.href}
-              className="group flex items-center gap-ds-3 px-card py-3 transition-colors hover:bg-ceda-cream/55 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ceda-orange"
+              className="group flex items-center gap-ds-3 px-card py-2.5 transition-colors hover:bg-ceda-cream/55 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ceda-orange"
             >
               <span
                 aria-hidden="true"
